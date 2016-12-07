@@ -2,8 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class LoyaltyValidators():
 
+class LoyaltyValidators(object):
     def __init__(self, basket):
         self.basket = basket
 

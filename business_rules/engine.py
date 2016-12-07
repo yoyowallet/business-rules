@@ -1,54 +1,73 @@
 import logging
 from .fields import FIELD_NO_INPUT
+from service.log_service import LogService
 
 logger = logging.getLogger(__name__)
+
 
 def run_all(rule_list,
             defined_variables,
             defined_actions,
             defined_validators=None,
-            stop_on_first_trigger=False):
-
+            stop_on_first_trigger=False,
+            log_service=None):
+    log_service = LogService() if log_service is None else log_service
     rule_was_triggered = False
     for rule in rule_list:
-        result = run(rule, defined_variables, defined_actions, defined_validators)
+        result = run(rule, defined_variables, defined_actions, defined_validators, log_service)
         if result:
             rule_was_triggered = True
             if stop_on_first_trigger:
                 return True
     return rule_was_triggered
 
-def run(rule, defined_variables, defined_actions, defined_validators):
+
+def run(rule, defined_variables, defined_actions, defined_validators, log_service):
     conditions, actions = rule['conditions'], rule['actions']
-    rule_triggered, payload = check_conditions_recursively(conditions, defined_variables, [])
+    rule_triggered, matches = check_conditions_recursively(conditions, defined_variables)
     if rule_triggered:
-        do_actions(actions, defined_actions, defined_validators, payload)
+        do_actions(actions, defined_actions, defined_validators, matches, rule, log_service)
         return True
     return False
 
-def check_conditions_recursively(conditions, defined_variables, matches):
+
+def check_conditions_recursively(conditions, defined_variables):
+    """
+
+    :param conditions:
+    :param defined_variables:
+    :param matches:
+    :return: tuple with result of condition check and list of checked conditions with each individual result.
+    """
     keys = list(conditions.keys())
     if keys == ['all']:
         assert len(conditions['all']) >= 1
+        matches = []
         for condition in conditions['all']:
-            if not check_conditions_recursively(condition, defined_variables, matches):
-                return False
+            check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables)
+            matches.extend(matches_results)
+            if not check_condition_result:
+                return False, matches
         return True, matches
 
     elif keys == ['any']:
         assert len(conditions['any']) >= 1
+        matches = []
         for condition in conditions['any']:
-            if check_conditions_recursively(condition, defined_variables, matches):
+            check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables)
+            matches.extend(matches_results)
+            if check_condition_result:
                 return True, matches
-        return False
+        return False, matches
 
     else:
         # help prevent errors - any and all can only be in the condition dict
         # if they're the only item
         assert not ('any' in keys or 'all' in keys)
         result = check_condition(conditions, defined_variables)
-        matches.append(result)
-        return result[0], matches
+        return result[0], [result]
+
+
 
 def check_condition(condition, defined_variables):
     """ Checks a single rule condition - the condition will be made up of
@@ -59,6 +78,7 @@ def check_condition(condition, defined_variables):
     operator_type = _get_variable_value(defined_variables, name)
     return _do_operator_comparison(operator_type, op, value), name, op, value
 
+
 def _get_variable_value(defined_variables, name):
     """ Call the function provided on the defined_variables object with the
     given name (raise exception if that doesn't exist) and casts it to the
@@ -66,12 +86,15 @@ def _get_variable_value(defined_variables, name):
 
     Returns an instance of operators.BaseType
     """
+
     def fallback(*args, **kwargs):
         raise AssertionError("Variable {0} is not defined in class {1}".format(
-                name, defined_variables.__class__.__name__))
+            name, defined_variables.__class__.__name__))
+
     method = getattr(defined_variables, name, fallback)
     val = method()
     return method.field_type(val)
+
 
 def _do_operator_comparison(operator_type, operator_name, comparison_value):
     """ Finds the method on the given operator_type and compares it to the
@@ -81,19 +104,21 @@ def _do_operator_comparison(operator_type, operator_name, comparison_value):
     comparison_value is whatever python type to compare to
     returns a bool
     """
+
     def fallback(*args, **kwargs):
         raise AssertionError("Operator {0} does not exist for type {1}".format(
             operator_name, operator_type.__class__.__name__))
+
     method = getattr(operator_type, operator_name, fallback)
     if getattr(method, 'input_type', '') == FIELD_NO_INPUT:
         return method()
     return method(comparison_value)
 
-def do_actions(actions, defined_actions, defined_validators, payload):
 
+def do_actions(actions, defined_actions, defined_validators, payload, rule, log_service):
     def action_fallback(*args, **kwargs):
-        raise AssertionError("Action {0} is not defined in class {1}"\
-            .format(method_name, defined_actions.__class__.__name__))
+        raise AssertionError("Action {0} is not defined in class {1}" \
+                             .format(method_name, defined_actions.__class__.__name__))
 
     def validator_fallback(*args, **kwargs):
         # return True by default if no validation function provided
@@ -111,9 +136,11 @@ def do_actions(actions, defined_actions, defined_validators, payload):
                 validator_fallback,
             )(condition_result[2], condition_result[3])
             for condition_result in payload
-        ]
+            ]
         if not any(valid):
             logger.info('Already awarded loyalty for action: {action}'.format(action=method_name))
 
         method = getattr(defined_actions, method_name, action_fallback)
         method(**params)
+
+        log_service.log_rule(rule, payload, defined_actions)
