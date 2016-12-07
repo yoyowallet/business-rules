@@ -1,6 +1,6 @@
 import logging
 from .fields import FIELD_NO_INPUT
-from service.log_service import LogService
+from .service.log_service import LogService
 
 logger = logging.getLogger(__name__)
 
