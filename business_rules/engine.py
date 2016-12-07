@@ -26,7 +26,7 @@ def run(rule, defined_variables, defined_actions, defined_validators, log_servic
     conditions, actions = rule['conditions'], rule['actions']
     rule_triggered, matches = check_conditions_recursively(conditions, defined_variables)
     if rule_triggered:
-        do_actions(actions, defined_actions, defined_validators, matches, rule, log_service)
+        do_actions(actions, defined_actions, defined_validators, defined_variables, matches, rule, log_service)
         return True
     return False
 
@@ -115,7 +115,7 @@ def _do_operator_comparison(operator_type, operator_name, comparison_value):
     return method(comparison_value)
 
 
-def do_actions(actions, defined_actions, defined_validators, payload, rule, log_service):
+def do_actions(actions, defined_actions, defined_validators, defined_variables, payload, rule, log_service):
     def action_fallback(*args, **kwargs):
         raise AssertionError("Action {0} is not defined in class {1}" \
                              .format(method_name, defined_actions.__class__.__name__))
@@ -143,4 +143,4 @@ def do_actions(actions, defined_actions, defined_validators, payload, rule, log_
         method = getattr(defined_actions, method_name, action_fallback)
         method(**params)
 
-        log_service.log_rule(rule, payload, defined_actions)
+        log_service.log_rule(rule, payload, action, defined_variables)
