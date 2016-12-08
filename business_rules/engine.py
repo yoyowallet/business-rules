@@ -1,6 +1,7 @@
 import logging
 from .fields import FIELD_NO_INPUT
 from business_rules.service.log_service import LogService
+from business_rules.validators import BaseValidator
 
 logger = logging.getLogger(__name__)
 
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 def run_all(rule_list,
             defined_variables,
             defined_actions,
-            defined_validators=None,
+            defined_validators=BaseValidator(),
             stop_on_first_trigger=False,
             log_service=None):
     log_service = LogService() if log_service is None else log_service
@@ -120,11 +121,6 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
         raise AssertionError("Action {0} is not defined in class {1}" \
                              .format(method_name, defined_actions.__class__.__name__))
 
-    def validator_fallback(*args, **kwargs):
-        # return True by default if no validation function provided
-        # might need to override this with some default behaviour?
-        return True
-
     for action in actions:
         method_name = action['name']
         params = action.get('params') or {}
@@ -133,9 +129,9 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
             getattr(
                 defined_validators,
                 condition_result[1],
-                validator_fallback,
+                defined_validators.validator_fallback(condition_result[1]),
             )(condition_result[2], condition_result[3])
-            for condition_result in payload
+            for condition_result in payload if condition_result[0]
             ]
         if not any(valid):
             logger.info('Already awarded loyalty for action: {action}'.format(action=method_name))
