@@ -121,22 +121,31 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
         raise AssertionError("Action {0} is not defined in class {1}" \
                              .format(method_name, defined_actions.__class__.__name__))
 
+    # Execute validators, if all False, then not execute actions for rule
+    valid = [
+        getattr(
+            defined_validators,
+            condition_result[1],
+            defined_validators.validator_fallback(condition_result[1]),
+        )(condition_result[2], condition_result[3])
+        for condition_result in payload if condition_result[0]
+        ]
+    if not any(valid):
+        logger.info('Rule already executed: {rule}'.format(rule=rule))
+        return
+
     for action in actions:
         method_name = action['name']
         params = action.get('params') or {}
 
-        valid = [
-            getattr(
-                defined_validators,
-                condition_result[1],
-                defined_validators.validator_fallback(condition_result[1]),
-            )(condition_result[2], condition_result[3])
-            for condition_result in payload if condition_result[0]
-            ]
-        if not any(valid):
-            logger.info('Already awarded loyalty for action: {action}'.format(action=method_name))
+        try:
+            method = getattr(defined_actions, method_name, action_fallback)
+            method(**params)
 
-        method = getattr(defined_actions, method_name, action_fallback)
-        method(**params)
-
-        log_service.log_rule(rule, payload, action, defined_variables)
+            log_service.log_rule(rule, payload, action, defined_variables)
+        except AssertionError as e:
+            # TODO: Log also using log_service?
+            logger.error("AssertionError: {exception}".format(exception=e))
+        except Exception as e:
+            # TODO: Log also using log_service?
+            logger.error("Exception: {exception}".format(exception=e))
