@@ -5,6 +5,9 @@ from business_rules.validators import BaseValidator
 
 logger = logging.getLogger(__name__)
 
+METHOD_TYPE_ACTION = 'action'
+METHOD_TYPE_VARIABLE = 'variable'
+
 
 def run_all(rule_list,
             defined_variables,
@@ -69,41 +72,58 @@ def check_conditions_recursively(conditions, defined_variables):
         return result[0], [result]
 
 
-
 def check_condition(condition, defined_variables):
-    """ Checks a single rule condition - the condition will be made up of
+    """
+    Checks a single rule condition - the condition will be made up of
     variables, values, and the comparison operator. The defined_variables
     object must have a variable defined for any variables in this condition.
+    :param condition:
+    :param defined_variables:
+    :return:
     """
     name, op, value = condition['name'], condition['operator'], condition['value']
-    operator_type = _get_variable_value(defined_variables, name)
+    params = condition.get('params', {})
+    operator_type = _get_variable_value(defined_variables, name, params)
     return _do_operator_comparison(operator_type, op, value), name, op, value
 
 
-def _get_variable_value(defined_variables, name):
-    """ Call the function provided on the defined_variables object with the
+def _get_variable_value(defined_variables, name, params):
+    """
+    Call the function provided on the defined_variables object with the
     given name (raise exception if that doesn't exist) and casts it to the
     specified type.
 
     Returns an instance of operators.BaseType
+    :param defined_variables:
+    :param name:
+    :param params:
+    :return: Instance of operators.BaseType
     """
 
-    def fallback(*args, **kwargs):
+    method = getattr(defined_variables, name, None)
+
+    if method is None:
         raise AssertionError("Variable {0} is not defined in class {1}".format(
             name, defined_variables.__class__.__name__))
 
-    method = getattr(defined_variables, name, fallback)
-    val = method()
+    _check_params_valid_for_method(method, params, METHOD_TYPE_VARIABLE)
+
+    val = method(**params)
     return method.field_type(val)
 
 
 def _do_operator_comparison(operator_type, operator_name, comparison_value):
-    """ Finds the method on the given operator_type and compares it to the
+    """
+    Finds the method on the given operator_type and compares it to the
     given comparison_value.
 
     operator_type should be an instance of operators.BaseType
     comparison_value is whatever python type to compare to
     returns a bool
+    :param operator_type:
+    :param operator_name:
+    :param comparison_value:
+    :return:
     """
 
     def fallback(*args, **kwargs):
@@ -140,6 +160,8 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
 
         try:
             method = getattr(defined_actions, method_name, action_fallback)
+            _check_params_valid_for_method(method, params, METHOD_TYPE_ACTION)
+
             method(**params)
 
             log_service.log_rule(rule, payload, action, defined_variables)
@@ -149,3 +171,27 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
         except Exception as e:
             # TODO: Log also using log_service?
             logger.error("Exception: {exception}".format(exception=e))
+
+
+def _check_params_valid_for_method(method, given_params, method_type):
+    """
+    Verifies that the given parameters match the names of those defined in
+    the variable or action decorator. Raise an error if one of the sets contains
+    a parameter that the other does not.
+    :param method:
+    :param params:
+    :param method_type:
+    :return:
+    """
+    defined_params = [param.get('name') for param in method.params]
+    missing_params = set(defined_params).difference(given_params)
+
+    if missing_params:
+        raise AssertionError("Missing parameters {0} for {1} {2}".format(
+            ', '.join(missing_params), method_type, method.__name__))
+
+    invalid_params = set(given_params).difference(defined_params)
+
+    if invalid_params:
+        raise AssertionError("Invalid parameters {0} for {1} {2}".format(
+            ', '.join(invalid_params), method_type, method.__name__))
