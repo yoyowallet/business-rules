@@ -1,7 +1,9 @@
 import logging
-from .fields import FIELD_NO_INPUT
+
+import utils
 from business_rules.service.log_service import LogService
 from business_rules.validators import BaseValidator
+from .fields import FIELD_NO_INPUT
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +185,8 @@ def _check_params_valid_for_method(method, given_params, method_type):
     :param method_type:
     :return:
     """
-    defined_params = [param.get('name') for param in method.params]
+    method_params = utils.params_dict_to_list(method.params)
+    defined_params = [param.get('name') for param in method_params]
     missing_params = set(defined_params).difference(given_params)
 
     if missing_params:

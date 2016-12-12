@@ -45,7 +45,9 @@ def rule_variable(field_type, label=None, options=None, params=None):
             raise AssertionError("{0} is not instance of BaseType in" \
                                  " rule_variable field_type".format(field_type))
 
-        _validate_variable_parameters(func, params)
+        params_wrapper = utils.params_dict_to_list(params)
+
+        _validate_variable_parameters(func, params_wrapper)
 
         func.params = params
         func.field_type = field_type

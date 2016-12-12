@@ -53,3 +53,35 @@ def float_to_decimal(f):
 def get_valid_fields():
     valid_fields = [getattr(fields, f) for f in dir(fields) if f.startswith("FIELD_")]
     return valid_fields
+
+
+def params_dict_to_list(params):
+    """
+    Transform parameters in dict format to list of dictionaries with a standard format.
+    If 'params' is not a dictionary, then the result will be 'params'
+    :param params: Dictionary of parameters with the following format:
+    {
+        'param_name': param_type
+    }
+    :return:
+    [
+        {
+            'label': 'param_name'
+            'name': 'param_name'
+            'field_type': param_type
+        }
+    ]
+    """
+    if params is None:
+        return []
+
+    if not isinstance(params, dict):
+        return params
+
+    return [
+        {
+            'label': fn_name_to_pretty_label(name),
+            'name': name,
+            'field_type': param_field_type
+        } for name, param_field_type in params.items()
+    ]
