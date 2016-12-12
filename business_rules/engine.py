@@ -81,12 +81,19 @@ def check_condition(condition, defined_variables):
     object must have a variable defined for any variables in this condition.
     :param condition:
     :param defined_variables:
-    :return:
+    :return: Tuple with the following format
+    (
+        result of condition: bool,
+        condition name: str,
+        condition operator: str,
+        condition value: ?,
+        condition params: {}
+    )
     """
     name, op, value = condition['name'], condition['operator'], condition['value']
     params = condition.get('params', {})
     operator_type = _get_variable_value(defined_variables, name, params)
-    return _do_operator_comparison(operator_type, op, value), name, op, value
+    return _do_operator_comparison(operator_type, op, value), name, op, value, params
 
 
 def _get_variable_value(defined_variables, name, params):
