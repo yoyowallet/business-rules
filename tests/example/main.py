@@ -1,9 +1,10 @@
 import logging
+
 from business_rules import run_all
-from tests.loyalty.basket import Item, Basket
-from tests.loyalty.variables import LoyaltyVariables
-from tests.loyalty.actions import LoyaltyActions
-from tests.loyalty.validators import LoyaltyValidators
+from tests.example.actions import ExampleActions
+from tests.example.basket import Item, Basket
+from tests.example.validators import ExampleValidators
+from tests.example.variables import ExampleVariables
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -38,7 +39,7 @@ hot_drink = Item(code=1, name='Hot Drink', line_number=1, quantity=1)
 basket = Basket(id=0, items=[hot_drink])
 run_all(
     rule_list=rules,
-    defined_variables=LoyaltyVariables(basket),
-    defined_actions=LoyaltyActions(basket),
-    defined_validators=LoyaltyValidators(basket),
+    defined_variables=ExampleVariables(basket),
+    defined_actions=ExampleActions(basket),
+    defined_validators=ExampleValidators(basket),
 )

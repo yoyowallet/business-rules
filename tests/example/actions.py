@@ -1,11 +1,12 @@
 import logging
+
 from business_rules.actions import *
 from business_rules.fields import *
 
 logger = logging.getLogger(__name__)
 
-class LoyaltyActions(BaseActions):
 
+class ExampleActions(BaseActions):
     def __init__(self, basket):
         self.basket = basket
 

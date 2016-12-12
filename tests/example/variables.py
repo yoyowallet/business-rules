@@ -1,9 +1,9 @@
 import datetime
+
 from business_rules.variables import *
 
 
-class LoyaltyVariables(BaseVariables):
-
+class ExampleVariables(BaseVariables):
     def __init__(self, basket):
         self.basket = basket
 

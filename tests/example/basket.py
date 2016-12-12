@@ -1,6 +1,4 @@
-
-class Item():
-
+class Item(object):
     def __init__(self, code, name, line_number, quantity):
         self._code = code
         self._name = name
@@ -24,8 +22,7 @@ class Item():
         return self._quantity
 
 
-class Basket():
-
+class Basket(object):
     def __init__(self, id, items):
         self._id = id
         self._items = items

@@ -5,7 +5,7 @@ from business_rules.validators import BaseValidator
 logger = logging.getLogger(__name__)
 
 
-class LoyaltyValidators(BaseValidator):
+class ExampleValidators(BaseValidator):
     def __init__(self, basket):
         self.basket = basket
 
