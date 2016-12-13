@@ -30,19 +30,19 @@ def run_all(rule_list,
 
 def run(rule, defined_variables, defined_actions, defined_validators, log_service):
     conditions, actions = rule['conditions'], rule['actions']
-    rule_triggered, matches = check_conditions_recursively(conditions, defined_variables)
+    rule_triggered, matches = check_conditions_recursively(conditions, defined_variables, rule)
     if rule_triggered:
         do_actions(actions, defined_actions, defined_validators, defined_variables, matches, rule, log_service)
         return True
     return False
 
 
-def check_conditions_recursively(conditions, defined_variables):
+def check_conditions_recursively(conditions, defined_variables, rule):
     """
 
     :param conditions:
     :param defined_variables:
-    :param matches:
+    :param rule:
     :return: tuple with result of condition check and list of checked conditions with each individual result.
     """
     keys = list(conditions.keys())
@@ -50,7 +50,7 @@ def check_conditions_recursively(conditions, defined_variables):
         assert len(conditions['all']) >= 1
         matches = []
         for condition in conditions['all']:
-            check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables)
+            check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables, rule)
             matches.extend(matches_results)
             if not check_condition_result:
                 return False, matches
@@ -60,7 +60,7 @@ def check_conditions_recursively(conditions, defined_variables):
         assert len(conditions['any']) >= 1
         matches = []
         for condition in conditions['any']:
-            check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables)
+            check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables, rule)
             matches.extend(matches_results)
             if check_condition_result:
                 return True, matches
@@ -70,17 +70,18 @@ def check_conditions_recursively(conditions, defined_variables):
         # help prevent errors - any and all can only be in the condition dict
         # if they're the only item
         assert not ('any' in keys or 'all' in keys)
-        result = check_condition(conditions, defined_variables)
+        result = check_condition(conditions, defined_variables, rule)
         return result[0], [result]
 
 
-def check_condition(condition, defined_variables):
+def check_condition(condition, defined_variables, rule):
     """
     Checks a single rule condition - the condition will be made up of
     variables, values, and the comparison operator. The defined_variables
     object must have a variable defined for any variables in this condition.
     :param condition:
     :param defined_variables:
+    :param rule
     :return: Tuple with the following format
     (
         result of condition: bool,
@@ -92,11 +93,11 @@ def check_condition(condition, defined_variables):
     """
     name, op, value = condition['name'], condition['operator'], condition['value']
     params = condition.get('params', {})
-    operator_type = _get_variable_value(defined_variables, name, params)
+    operator_type = _get_variable_value(defined_variables, name, params, rule)
     return _do_operator_comparison(operator_type, op, value), name, op, value, params
 
 
-def _get_variable_value(defined_variables, name, params):
+def _get_variable_value(defined_variables, name, params, rule):
     """
     Call the function provided on the defined_variables object with the
     given name (raise exception if that doesn't exist) and casts it to the
@@ -117,7 +118,10 @@ def _get_variable_value(defined_variables, name, params):
 
     _check_params_valid_for_method(method, params, METHOD_TYPE_VARIABLE)
 
-    val = method(**params)
+    method_params = {'rule': rule} if method.inject_rule else {}
+    method_params.update(params)
+
+    val = method(**method_params)
     return method.field_type(val)
 
 

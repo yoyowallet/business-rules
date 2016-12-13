@@ -28,13 +28,14 @@ class BaseVariables(object):
                 } for m in methods if getattr(m[1], 'is_rule_variable', False)]
 
 
-def rule_variable(field_type, label=None, options=None, params=None):
+def rule_variable(field_type, label=None, options=None, params=None, inject_rule=False):
     """
     Decorator to make a function into a rule variable
     :param field_type:
     :param label:
     :param options:
     :param params:
+    :param inject_rule:
     :return:
     """
     options = options or []
@@ -54,38 +55,39 @@ def rule_variable(field_type, label=None, options=None, params=None):
         func.is_rule_variable = True
         func.label = label or fn_name_to_pretty_label(func.__name__)
         func.options = options
+        func.inject_rule = inject_rule
 
         return func
 
     return wrapper
 
 
-def _rule_variable_wrapper(field_type, label, params=None):
+def _rule_variable_wrapper(field_type, label, params=None, inject_rule=False):
     if callable(label):
         # Decorator is being called with no args, label is actually the decorated func
-        return rule_variable(field_type, params=params)(label)
+        return rule_variable(field_type, params=params, inject_rule=inject_rule)(label)
 
-    return rule_variable(field_type, label=label, params=params)
-
-
-def numeric_rule_variable(label=None, params=None):
-    return _rule_variable_wrapper(NumericType, label, params=params)
+    return rule_variable(field_type, label=label, params=params, inject_rule=inject_rule)
 
 
-def string_rule_variable(label=None, params=None):
-    return _rule_variable_wrapper(StringType, label, params=params)
+def numeric_rule_variable(label=None, params=None, inject_rule=False):
+    return _rule_variable_wrapper(NumericType, label, params=params, inject_rule=inject_rule)
 
 
-def boolean_rule_variable(label=None, params=None):
-    return _rule_variable_wrapper(BooleanType, label, params=params)
+def string_rule_variable(label=None, params=None, inject_rule=False):
+    return _rule_variable_wrapper(StringType, label, params=params, inject_rule=inject_rule)
 
 
-def select_rule_variable(label=None, options=None, params=None):
-    return rule_variable(SelectType, label=label, options=options, params=params)
+def boolean_rule_variable(label=None, params=None, inject_rule=False):
+    return _rule_variable_wrapper(BooleanType, label, params=params, inject_rule=inject_rule)
 
 
-def select_multiple_rule_variable(label=None, options=None, params=None):
-    return rule_variable(SelectMultipleType, label=label, options=options, params=params)
+def select_rule_variable(label=None, options=None, params=None, inject_rule=False):
+    return rule_variable(SelectType, label=label, options=options, params=params, inject_rule=inject_rule)
+
+
+def select_multiple_rule_variable(label=None, options=None, params=None, inject_rule=False):
+    return rule_variable(SelectMultipleType, label=label, options=options, params=params, inject_rule=inject_rule)
 
 
 def _validate_variable_parameters(func, params):

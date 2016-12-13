@@ -38,6 +38,11 @@ rules = [
                     "params": {
                         'year': datetime.datetime.now().year
                     }
+                },
+                {
+                    "name": "rule_variable",
+                    "operator": "is_true",
+                    "value": "True"
                 }
             ]
         },
