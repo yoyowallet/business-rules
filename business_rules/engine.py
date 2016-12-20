@@ -4,11 +4,9 @@ import utils
 from business_rules.service.log_service import LogService
 from business_rules.validators import BaseValidator
 from .fields import FIELD_NO_INPUT
+from util import method_type
 
 logger = logging.getLogger(__name__)
-
-METHOD_TYPE_ACTION = 'action'
-METHOD_TYPE_VARIABLE = 'variable'
 
 
 def run_all(rule_list,
@@ -116,7 +114,7 @@ def _get_variable_value(defined_variables, name, params, rule):
         raise AssertionError("Variable {0} is not defined in class {1}".format(
             name, defined_variables.__class__.__name__))
 
-    _check_params_valid_for_method(method, params, METHOD_TYPE_VARIABLE)
+    _check_params_valid_for_method(method, params, method_type.METHOD_TYPE_VARIABLE)
 
     method_params = {'rule': rule} if method.inject_rule else {}
     method_params.update(params)
@@ -150,6 +148,30 @@ def _do_operator_comparison(operator_type, operator_name, comparison_value):
 
 
 def do_actions(actions, defined_actions, defined_validators, defined_variables, payload, rule, log_service):
+    """
+
+    :param actions:             List of actions objects to be executed (defined in library)
+                                Example:
+
+                                .. code-block:: json
+
+                                    {
+                                        "name": "action name",
+                                        "params": {
+                                            "param1": value
+                                        }
+                                    }
+    :param defined_actions:     Class with function that implement the logic for each possible action defined in
+                                'actions' parameter
+    :param defined_validators:
+    :param defined_variables:
+    :param payload:
+    :param rule:                Rule that is beign executed
+    :param log_service:         Log service instance for logging. It MUST be an instance of
+                                service.log_service.LogService
+    :return: Nothing
+    """
+
     def action_fallback(*args, **kwargs):
         raise AssertionError("Action {0} is not defined in class {1}" \
                              .format(method_name, defined_actions.__class__.__name__))
@@ -173,7 +195,7 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
 
         try:
             method = getattr(defined_actions, method_name, action_fallback)
-            _check_params_valid_for_method(method, params, METHOD_TYPE_ACTION)
+            _check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
 
             method(**params)
 
@@ -186,15 +208,16 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
             logger.error("Exception: {exception}".format(exception=e))
 
 
-def _check_params_valid_for_method(method, given_params, method_type):
+def _check_params_valid_for_method(method, given_params, method_type_name):
     """
-    Verifies that the given parameters match the names of those defined in
-    the variable or action decorator. Raise an error if one of the sets contains
-    a parameter that the other does not.
+    Verifies that the given parameters (defined in the Rule) match the names of those defined in
+    the variable or action decorator. Raise an error if one of the sets contains a parameter that
+    the other does not.
+
     :param method:
-    :param params:
-    :param method_type:
-    :return:
+    :param given_params: Parameters defined within the Rule (Action or Condition)
+    :param method_type_name: A method type defined in util.method_type module
+    :return: None. Raise exception if parameters don't match (defined in method and Rule)
     """
     method_params = utils.params_dict_to_list(method.params)
     defined_params = [param.get('name') for param in method_params]
@@ -202,10 +225,10 @@ def _check_params_valid_for_method(method, given_params, method_type):
 
     if missing_params:
         raise AssertionError("Missing parameters {0} for {1} {2}".format(
-            ', '.join(missing_params), method_type, method.__name__))
+            ', '.join(missing_params), method_type_name, method.__name__))
 
     invalid_params = set(given_params).difference(defined_params)
 
     if invalid_params:
         raise AssertionError("Invalid parameters {0} for {1} {2}".format(
-            ', '.join(invalid_params), method_type, method.__name__))
+            ', '.join(invalid_params), method_type_name, method.__name__))
