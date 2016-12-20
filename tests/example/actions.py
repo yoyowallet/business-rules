@@ -12,10 +12,11 @@ class ExampleActions(BaseActions):
 
     @rule_action(params={
         "stamps": FIELD_NUMERIC
-    })
-    def award_stamps(self, stamps):
+    }, inject_rule=True)
+    def award_stamps(self, stamps, rule):
         logger.info('Awarding {} stamps to basket id: {}'.format(
             stamps,
             self.basket.id,
         ))
+        logger.info('rule from ACTION: {}'.format(rule))
         pass

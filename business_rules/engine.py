@@ -197,7 +197,10 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
             method = getattr(defined_actions, method_name, action_fallback)
             _check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
 
-            method(**params)
+            method_params = {'rule': rule} if method.inject_rule else {}
+            method_params.update(params)
+
+            method(**method_params)
 
             log_service.log_rule(rule, payload, action, defined_variables)
         except AssertionError as e:

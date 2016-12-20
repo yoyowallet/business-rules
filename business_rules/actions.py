@@ -41,22 +41,26 @@ def _validate_action_parameters(func, params):
                     field_type, func.__name__, param_name))
 
 
-def rule_action(label=None, params=None):
+def rule_action(label=None, params=None, inject_rule=False):
     """ Decorator to make a function into a rule action
     """
 
     def wrapper(func):
         params_ = params
         if isinstance(params, dict):
-            params_ = [dict(label=fn_name_to_pretty_label(name),
-                            name=name,
-                            fieldType=field_type) \
-                       for name, field_type in params.items()]
+            params_ = [
+                dict(
+                    label=fn_name_to_pretty_label(name),
+                    name=name,
+                    fieldType=field_type
+                ) for name, field_type in params.items()]
+
         _validate_action_parameters(func, params_)
 
         func.is_rule_action = True
         func.label = label or fn_name_to_pretty_label(func.__name__)
         func.params = params_
+        func.inject_rule = inject_rule
 
         return func
 
