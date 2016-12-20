@@ -1,14 +1,16 @@
-from business_rules import engine
-from business_rules.variables import BaseVariables
-from business_rules.operators import StringType
-from business_rules.actions import BaseActions
-
 from mock import patch, MagicMock
+
+from business_rules import engine
+from business_rules import fields
+from business_rules.actions import BaseActions
+from business_rules.operators import StringType
+from business_rules.service.log_service import LogService
+from business_rules.validators import BaseValidator
+from business_rules.variables import BaseVariables
 from . import TestCase
 
 
 class EngineTests(TestCase):
-
     ###
     ### Run
     ###
@@ -25,6 +27,7 @@ class EngineTests(TestCase):
 
         def return_action1(rule, *args, **kwargs):
             return rule['actions'] == 'action name 1'
+
         engine.run.side_effect = return_action1
 
         result = engine.run_all([rule1, rule2], variables, actions)
@@ -46,7 +49,7 @@ class EngineTests(TestCase):
         actions = BaseActions()
 
         result = engine.run_all([rule1, rule2], variables, actions,
-                stop_on_first_trigger=True)
+                                stop_on_first_trigger=True)
         self.assertEqual(result, True)
         self.assertEqual(engine.run.call_count, 1)
         engine.run.assert_called_once_with(rule1, variables, actions)
@@ -61,9 +64,8 @@ class EngineTests(TestCase):
         result = engine.run(rule, variables, actions)
         self.assertEqual(result, True)
         engine.check_conditions_recursively.assert_called_once_with(
-                rule['conditions'], variables)
+            rule['conditions'], variables)
         engine.do_actions.assert_called_once_with(rule['actions'], actions)
-
 
     @patch.object(engine, 'check_conditions_recursively', return_value=False)
     @patch.object(engine, 'do_actions')
@@ -75,72 +77,77 @@ class EngineTests(TestCase):
         result = engine.run(rule, variables, actions)
         self.assertEqual(result, False)
         engine.check_conditions_recursively.assert_called_once_with(
-                rule['conditions'], variables)
+            rule['conditions'], variables)
         self.assertEqual(engine.do_actions.call_count, 0)
 
-
-    @patch.object(engine, 'check_condition', return_value=True)
+    @patch.object(engine, 'check_condition', return_value=(True,))
     def test_check_all_conditions_with_all_true(self, *args):
         conditions = {'all': [{'thing1': ''}, {'thing2': ''}]}
         variables = BaseVariables()
+        rule = {'conditions': conditions, 'actions': []}
 
-        result = engine.check_conditions_recursively(conditions, variables)
-        self.assertEqual(result, True)
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [(True,), (True,)]))
         # assert call count and most recent call are as expected
         self.assertEqual(engine.check_condition.call_count, 2)
-        engine.check_condition.assert_called_with({'thing2': ''}, variables)
+        engine.check_condition.assert_called_with({'thing2': ''}, variables, rule)
 
-
-    ###
-    ### Check conditions
-    ###
-    @patch.object(engine, 'check_condition', return_value=False)
+    # ########################################################## #
+    # #################### Check conditions #################### #
+    # ########################################################## #
+    @patch.object(engine, 'check_condition', return_value=(False,))
     def test_check_all_conditions_with_all_false(self, *args):
         conditions = {'all': [{'thing1': ''}, {'thing2': ''}]}
         variables = BaseVariables()
+        rule = {"conditions": conditions, "actions": []}
 
-        result = engine.check_conditions_recursively(conditions, variables)
-        self.assertEqual(result, False)
-        engine.check_condition.assert_called_once_with({'thing1': ''}, variables)
-
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (False, [(False,)]))
+        engine.check_condition.assert_called_once_with({'thing1': ''}, variables, rule)
 
     def test_check_all_condition_with_no_items_fails(self):
+        conditions = {'all': []}
+        rule = {"conditions": conditions, "actions": []}
+        variables = BaseVariables()
         with self.assertRaises(AssertionError):
-            engine.check_conditions_recursively({'all': []}, BaseVariables())
+            engine.check_conditions_recursively(conditions, variables, rule)
 
-
-    @patch.object(engine, 'check_condition', return_value=True)
+    @patch.object(engine, 'check_condition', return_value=(True,))
     def test_check_any_conditions_with_all_true(self, *args):
         conditions = {'any': [{'thing1': ''}, {'thing2': ''}]}
         variables = BaseVariables()
+        rule = {'conditions': conditions, 'actions': []}
 
-        result = engine.check_conditions_recursively(conditions, variables)
-        self.assertEqual(result, True)
-        engine.check_condition.assert_called_once_with({'thing1': ''}, variables)
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [(True,)]))
+        engine.check_condition.assert_called_once_with({'thing1': ''}, variables, rule)
 
-
-    @patch.object(engine, 'check_condition', return_value=False)
+    @patch.object(engine, 'check_condition', return_value=(False,))
     def test_check_any_conditions_with_all_false(self, *args):
         conditions = {'any': [{'thing1': ''}, {'thing2': ''}]}
         variables = BaseVariables()
+        rule = {'conditions': conditions, 'actions': []}
 
-        result = engine.check_conditions_recursively(conditions, variables)
-        self.assertEqual(result, False)
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (False, [(False,), (False,)]))
         # assert call count and most recent call are as expected
         self.assertEqual(engine.check_condition.call_count, 2)
-        engine.check_condition.assert_called_with({'thing2': ''}, variables)
-
+        engine.check_condition.assert_called_with(conditions['any'][1], variables, rule)
 
     def test_check_any_condition_with_no_items_fails(self):
-        with self.assertRaises(AssertionError):
-            engine.check_conditions_recursively({'any': []}, BaseVariables())
+        conditions = {'any': []}
+        variables = BaseVariables()
+        rule = {'conditions': conditions, 'actions': []}
 
+        with self.assertRaises(AssertionError):
+            engine.check_conditions_recursively(conditions, variables, rule)
 
     def test_check_all_and_any_together(self):
         conditions = {'any': [], 'all': []}
         variables = BaseVariables()
+        rule = {"conditions": conditions, "actions": []}
         with self.assertRaises(AssertionError):
-            engine.check_conditions_recursively(conditions, variables)
+            engine.check_conditions_recursively(conditions, variables, rule)
 
     @patch.object(engine, 'check_condition')
     def test_nested_all_and_any(self, *args):
@@ -150,7 +157,8 @@ class EngineTests(TestCase):
         bv = BaseVariables()
 
         def side_effect(condition, _):
-            return condition['name'] in [2,3]
+            return condition['name'] in [2, 3]
+
         engine.check_condition.side_effect = side_effect
 
         engine.check_conditions_recursively(conditions, bv)
@@ -159,31 +167,56 @@ class EngineTests(TestCase):
         engine.check_condition.assert_any_call({'name': 2}, bv)
         engine.check_condition.assert_any_call({'name': 3}, bv)
 
-
-    ###
-    ### Operator comparisons
-    ###
+    # ##################################### #
+    # ####### Operator comparisons ######## #
+    # ##################################### #
     def test_check_operator_comparison(self):
         string_type = StringType('yo yo')
         with patch.object(string_type, 'contains', return_value=True):
             result = engine._do_operator_comparison(
-                    string_type, 'contains', 'its mocked')
+                string_type, 'contains', 'its mocked')
             self.assertTrue(result)
             string_type.contains.assert_called_once_with('its mocked')
 
-
-    ###
-    ### Actions
-    ###
+    # ##################################### #
+    # ############## Actions ############## #
+    # ##################################### #
     def test_do_actions(self):
-        actions = [ {'name': 'action1'},
-                    {'name': 'action2',
-                     'params': {'param1': 'foo', 'param2': 10}}]
+        rule_actions = [
+            {
+                'name': 'action1'
+            },
+            {
+                'name': 'action2',
+                'params': {'param1': 'foo', 'param2': 10}
+            }
+        ]
+
+        rule = {
+            'conditions': {
+
+            },
+            'actions': rule_actions
+        }
+
         defined_actions = BaseActions()
         defined_actions.action1 = MagicMock()
+        defined_actions.action1.inject_rule = False
         defined_actions.action2 = MagicMock()
+        defined_actions.action2.params = {
+            'param1': fields.FIELD_TEXT,
+            'param2': fields.FIELD_NUMERIC
+        }
+        defined_actions.action2.inject_rule = False
 
-        engine.do_actions(actions, defined_actions)
+        defined_validators = BaseValidator()
+        defined_variables = BaseVariables()
+        log_service = LogService()
+
+        payload = [(True, 'condition_name', 'operator_name', 'condition_value')]
+
+        engine.do_actions(rule_actions, defined_actions, defined_validators, defined_variables, payload, rule,
+                          log_service)
 
         defined_actions.action1.assert_called_once_with()
         defined_actions.action2.assert_called_once_with(param1='foo', param2=10)

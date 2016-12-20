@@ -38,10 +38,14 @@ def run(rule, defined_variables, defined_actions, defined_validators, log_servic
 def check_conditions_recursively(conditions, defined_variables, rule):
     """
 
-    :param conditions:
-    :param defined_variables:
-    :param rule:
+    :param conditions:  Conditions to be checked
+    :param defined_variables: BaseVariables instance to get variables values to check Conditions
+    :param rule: Original rule where Conditions and Actions are defined
     :return: tuple with result of condition check and list of checked conditions with each individual result.
+
+            (condition_result, [(condition1_result), (condition2_result)]
+
+            condition1_result = (condition_result, variable name, condition operator, condition value, condition params)
     """
     keys = list(conditions.keys())
     if keys == ['all']:
