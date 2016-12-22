@@ -1,10 +1,11 @@
+import inspect
 import logging
 
 import utils
 from business_rules.service.log_service import LogService
 from business_rules.validators import BaseValidator
-from .fields import FIELD_NO_INPUT
 from util import method_type
+from .fields import FIELD_NO_INPUT
 
 logger = logging.getLogger(__name__)
 
@@ -201,9 +202,7 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
             method = getattr(defined_actions, method_name, action_fallback)
             _check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
 
-            method_params = {'rule': rule} if method.inject_rule else {}
-            method_params.update(params)
-
+            method_params = _build_parameters(method, params, rule, payload)
             method(**method_params)
 
             log_service.log_rule(rule, payload, action, defined_variables)
@@ -213,6 +212,30 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
         except Exception as e:
             # TODO: Log also using log_service?
             logger.error("Exception: {exception}".format(exception=e))
+
+
+def _build_parameters(method, parameters, rule, payload):
+    """
+    Adds extra parameters to the parameters defined for the method
+    :param method:
+    :param parameters:
+    :param rule:
+    :param payload:
+    :return:
+    """
+    if inspect.getargspec(method).keywords is not None:
+        conditions = filter(lambda x: x[0], payload)
+
+        method_params = {
+            'rule': rule,
+            'conditions': conditions
+        }
+    else:
+        method_params = {}
+
+    method_params.update(parameters)
+
+    return method_params
 
 
 def _check_params_valid_for_method(method, given_params, method_type_name):

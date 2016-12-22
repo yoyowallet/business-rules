@@ -12,8 +12,9 @@ class ExampleActions(BaseActions):
 
     @rule_action(params={
         "stamps": FIELD_NUMERIC
-    }, inject_rule=True)
-    def award_stamps(self, stamps, rule):
+    })
+    def award_stamps(self, stamps, **kargs):
+        rule = kargs.get('rule')
         logger.info('Awarding {} stamps to basket id: {}'.format(
             stamps,
             self.basket.id,

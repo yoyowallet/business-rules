@@ -41,8 +41,15 @@ def _validate_action_parameters(func, params):
                     field_type, func.__name__, param_name))
 
 
-def rule_action(label=None, params=None, inject_rule=False):
-    """ Decorator to make a function into a rule action
+def rule_action(label=None, params=None):
+    """
+    Decorator to make a function into a rule action.
+
+    NOTE: add **kargs argument to receive Rule and Matched Conditions as parameters in Action function
+
+    :param label: Label for Action
+    :param params: Parameters expected by the Action function
+    :return: Decorator function wrapper
     """
 
     def wrapper(func):
@@ -60,7 +67,6 @@ def rule_action(label=None, params=None, inject_rule=False):
         func.is_rule_action = True
         func.label = label or fn_name_to_pretty_label(func.__name__)
         func.params = params_
-        func.inject_rule = inject_rule
 
         return func
 
