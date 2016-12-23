@@ -224,6 +224,7 @@ def _build_parameters(method, parameters, rule, payload):
     :return:
     """
     if inspect.getargspec(method).keywords is not None:
+        # Get only conditions which the result was TRUE
         conditions = filter(lambda x: x[0], payload)
 
         method_params = {

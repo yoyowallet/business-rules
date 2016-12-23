@@ -45,7 +45,7 @@ def rule_action(label=None, params=None):
     """
     Decorator to make a function into a rule action.
 
-    NOTE: add **kargs argument to receive Rule and Matched Conditions as parameters in Action function
+    NOTE: add **kwargs argument to receive Rule and Matched Conditions as parameters in Action function
 
     :param label: Label for Action
     :param params: Parameters expected by the Action function
