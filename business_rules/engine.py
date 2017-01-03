@@ -203,9 +203,9 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
             _check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
 
             method_params = _build_parameters(method, params, rule, payload)
-            method(**method_params)
+            action_result = method(**method_params)
 
-            log_service.log_rule(rule, payload, action, defined_variables)
+            log_service.log_rule(rule, payload, action, defined_variables, action_result)
         except AssertionError as e:
             # TODO: Log also using log_service?
             logger.error("AssertionError: {exception}".format(exception=e))

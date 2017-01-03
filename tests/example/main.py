@@ -21,7 +21,7 @@ rules = [
                 {
                     "name": "current_month",
                     "operator": "equal_to",
-                    "value": "December",
+                    "value": "January",
                 },
                 {
                     "name": "current_month_boolean",
