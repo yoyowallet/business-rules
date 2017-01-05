@@ -84,17 +84,20 @@ def check_condition(condition, defined_variables, rule):
     Checks a single rule condition - the condition will be made up of
     variables, values, and the comparison operator. The defined_variables
     object must have a variable defined for any variables in this condition.
+
     :param condition:
     :param defined_variables:
-    :param rule
-    :return: Tuple with the following format
-    (
-        result of condition: bool,
-        condition name: str,
-        condition operator: str,
-        condition value: ?,
-        condition params: {}
-    )
+    :param rule:
+    :return: business_rules.models.ConditionResult
+
+        .. code-block::
+        (
+            result of condition: bool,
+            condition name: str,
+            condition operator: str,
+            condition value: ?,
+            condition params: {}
+        )
     """
     name, op, value = condition['name'], condition['operator'], condition['value']
     params = condition.get('params', {})
