@@ -2,6 +2,7 @@ import inspect
 import logging
 
 import utils
+from business_rules.models import ConditionResult
 from business_rules.service.log_service import LogService
 from business_rules.validators import BaseValidator
 from util import method_type
@@ -29,9 +30,10 @@ def run_all(rule_list,
 
 def run(rule, defined_variables, defined_actions, defined_validators, log_service):
     conditions, actions = rule['conditions'], rule['actions']
-    rule_triggered, matches = check_conditions_recursively(conditions, defined_variables, rule)
+    rule_triggered, checked_conditions_results = check_conditions_recursively(conditions, defined_variables, rule)
     if rule_triggered:
-        do_actions(actions, defined_actions, defined_validators, defined_variables, matches, rule, log_service)
+        do_actions(actions, defined_actions, defined_validators, defined_variables, checked_conditions_results, rule,
+                   log_service)
         return True
     return False
 
@@ -97,7 +99,8 @@ def check_condition(condition, defined_variables, rule):
     name, op, value = condition['name'], condition['operator'], condition['value']
     params = condition.get('params', {})
     operator_type = _get_variable_value(defined_variables, name, params, rule)
-    return _do_operator_comparison(operator_type, op, value), name, op, value, params
+    return ConditionResult(result=_do_operator_comparison(operator_type, op, value), name=name, operator=op,
+                           value=value, parameters=params)
 
 
 def _get_variable_value(defined_variables, name, params, rule):
@@ -152,7 +155,8 @@ def _do_operator_comparison(operator_type, operator_name, comparison_value):
     return method(comparison_value)
 
 
-def do_actions(actions, defined_actions, defined_validators, defined_variables, payload, rule, log_service):
+def do_actions(actions, defined_actions, defined_validators, defined_variables, checked_conditions_results, rule,
+               log_service):
     """
 
     :param actions:             List of actions objects to be executed (defined in library)
@@ -170,16 +174,15 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
                                 'actions' parameter
     :param defined_validators:
     :param defined_variables:
-    :param payload:
+    :param checked_conditions_results:
     :param rule:                Rule that is beign executed
     :param log_service:         Log service instance for logging. It MUST be an instance of
                                 service.log_service.LogService
-    :return: Nothing
+    :return: None
     """
 
-    def action_fallback(*args, **kwargs):
-        raise AssertionError("Action {0} is not defined in class {1}" \
-                             .format(method_name, defined_actions.__class__.__name__))
+    # Get only conditions when result was TRUE
+    successful_conditions = filter(lambda x: x[0], checked_conditions_results)
 
     # Execute validators, if all False, then not execute actions for rule
     valid = [
@@ -188,7 +191,7 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
             condition_result[1],
             defined_validators.validator_fallback(condition_result[1]),
         )(condition_result[2], condition_result[3])
-        for condition_result in payload if condition_result[0]
+        for condition_result in successful_conditions
         ]
     if not any(valid):
         logger.info('Rule already executed: {rule}'.format(rule=rule))
@@ -198,35 +201,30 @@ def do_actions(actions, defined_actions, defined_validators, defined_variables, 
         method_name = action['name']
         params = action.get('params') or {}
 
-        try:
-            method = getattr(defined_actions, method_name, action_fallback)
-            _check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
+        method = getattr(defined_actions, method_name, None)
 
-            method_params = _build_parameters(method, params, rule, payload)
-            action_result = method(**method_params)
+        if not method:
+            raise AssertionError("Action {0} is not defined in class {1}" \
+                                 .format(method_name, defined_actions.__class__.__name__))
 
-            log_service.log_rule(rule, payload, action, defined_variables, action_result)
-        except AssertionError as e:
-            # TODO: Log also using log_service?
-            logger.error("AssertionError: {exception}".format(exception=e))
-        except Exception as e:
-            # TODO: Log also using log_service?
-            logger.error("Exception: {exception}".format(exception=e))
+        _check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
+
+        method_params = _build_parameters(method, params, rule, successful_conditions)
+        action_result = method(**method_params)
+
+        log_service.log_rule(rule, checked_conditions_results, action, defined_variables, action_result)
 
 
-def _build_parameters(method, parameters, rule, payload):
+def _build_parameters(method, parameters, rule, conditions):
     """
     Adds extra parameters to the parameters defined for the method
     :param method:
     :param parameters:
     :param rule:
-    :param payload:
+    :param conditions:
     :return:
     """
     if inspect.getargspec(method).keywords is not None:
-        # Get only conditions which the result was TRUE
-        conditions = filter(lambda x: x[0], payload)
-
         method_params = {
             'rule': rule,
             'conditions': conditions
