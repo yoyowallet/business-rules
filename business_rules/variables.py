@@ -1,13 +1,15 @@
 import inspect
-from functools import wraps
-from .utils import fn_name_to_pretty_label
+
 import utils
 from .operators import (BaseType,
                         NumericType,
                         StringType,
                         BooleanType,
                         SelectType,
-                        SelectMultipleType)
+                        SelectMultipleType,
+                        DateTimeType,
+                        )
+from .utils import fn_name_to_pretty_label
 
 
 class BaseVariables(object):
@@ -134,6 +136,20 @@ def select_multiple_rule_variable(label=None, options=None, params=None):
     :return: Decorator function wrapper
     """
     return rule_variable(SelectMultipleType, label=label, options=options, params=params)
+
+
+def datetime_rule_variable(label=None, params=None):
+    """
+    Decorator to make a function into a select multiple rule variable.
+
+    NOTE: add **kwargs argument to receive Rule as parameters
+
+    :param label:
+    :param params:
+    :return: Decorator function wrapper for DateTime values
+    """
+
+    return _rule_variable_wrapper(field_type=DateTimeType, label=label, params=params)
 
 
 def _validate_variable_parameters(func, params):

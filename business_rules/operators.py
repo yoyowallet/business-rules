@@ -2,11 +2,10 @@ import inspect
 import re
 from decimal import Decimal
 from functools import wraps
-
+from datetime import datetime, date
 from six import string_types, integer_types
 
-from .fields import (FIELD_TEXT, FIELD_NUMERIC, FIELD_NO_INPUT,
-                     FIELD_SELECT, FIELD_SELECT_MULTIPLE)
+from .fields import (FIELD_TEXT, FIELD_NUMERIC, FIELD_NO_INPUT, FIELD_SELECT, FIELD_SELECT_MULTIPLE, FIELD_DATETIME)
 from .utils import fn_name_to_pretty_label, float_to_decimal
 
 
@@ -237,3 +236,45 @@ class SelectMultipleType(BaseType):
     @type_operator(FIELD_SELECT_MULTIPLE)
     def shares_no_elements_with(self, other_value):
         return not self.shares_at_least_one_element_with(other_value)
+
+
+@export_type
+class DateTimeType(BaseType):
+    name = "datetime"
+    DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
+    DATE_FORMAT = '%Y-%m-%d'
+
+    def _assert_valid_value_and_cast(self, value):
+        if isinstance(value, datetime):
+            return value
+
+        if isinstance(value, date):
+            return datetime(value.year, value.month, value.day)
+
+        try:
+            return datetime.strptime(value, self.DATETIME_FORMAT)
+        except (ValueError, TypeError):
+            try:
+                return datetime.strptime(value, self.DATE_FORMAT)
+            except (ValueError, TypeError):
+                raise AssertionError("{0} is not a valid datetime type.".format(value))
+
+    @type_operator(FIELD_DATETIME)
+    def equal_to(self, other_datetime):
+        return self.value == other_datetime
+
+    @type_operator(FIELD_DATETIME)
+    def after_than(self, other_datetime):
+        return self.value > other_datetime
+
+    @type_operator(FIELD_DATETIME)
+    def after_than_or_equal_to(self, other_datetime):
+        return self.after_than(other_datetime) or self.equal_to(other_datetime)
+
+    @type_operator(FIELD_DATETIME)
+    def before_than(self, other_datetime):
+        return self.value < other_datetime
+
+    @type_operator(FIELD_DATETIME)
+    def before_than_or_equal_to(self, other_datetime):
+        return self.before_than(other_datetime) or self.equal_to(other_datetime)
