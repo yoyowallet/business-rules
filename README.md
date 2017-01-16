@@ -324,7 +324,13 @@ Note: to compare floating point equality we just check that the difference is le
 
 **datetime** - a Timestamp value
 
-This rule variable accepts the following types of values:
+A rule variable accepts the following types of values:
+
+* int
+* string with format `%Y-%m-%dT%H:%M:%S`
+* string with format `%Y-%m-%d`
+
+A variable can return the following types of values:
 
 * int
 * datetime
@@ -343,7 +349,11 @@ This rule variable accepts the following types of values:
 
 **time** - a Time value
 
-This rule variable accepts the following types of values:
+A rule variable accepts the following types of values:
+
+* string with format `%H:%M:%S`
+
+A variable can return the following types of values:
 
 * datetime
 * time
