@@ -249,6 +249,8 @@ class DateTimeType(BaseType):
 
     def _assert_valid_value_and_cast(self, value):
         """
+        Parse int, datetime, date or string with formats '%Y-%m-%dT%H:%M:%S' or '%Y-%m-%d' into
+        timestamp (int) instance.
 
         :param value:
         :return:
@@ -303,7 +305,7 @@ class TimeType(BaseType):
 
     def _assert_valid_value_and_cast(self, value):
         """
-        Parse datetime, date or string with format %H:%M:%S into time instance.
+        Parse datetime, time or string with format %H:%M:%S into time instance.
 
         :param value: datetime, date or string with format %H:%M:%S
         :return: time
