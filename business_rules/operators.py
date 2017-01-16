@@ -4,6 +4,7 @@ from decimal import Decimal
 from functools import wraps
 from datetime import datetime, date
 from six import string_types, integer_types
+import calendar
 
 from .fields import (FIELD_TEXT, FIELD_NUMERIC, FIELD_NO_INPUT, FIELD_SELECT, FIELD_SELECT_MULTIPLE, FIELD_DATETIME)
 from .utils import fn_name_to_pretty_label, float_to_decimal
@@ -245,19 +246,32 @@ class DateTimeType(BaseType):
     DATE_FORMAT = '%Y-%m-%d'
 
     def _assert_valid_value_and_cast(self, value):
-        if isinstance(value, datetime):
+        """
+
+        :param value:
+        :return:
+        """
+        if isinstance(value, integer_types):
             return value
 
-        if isinstance(value, date):
-            return datetime(value.year, value.month, value.day)
+        if isinstance(value, (datetime, date)):
+            return calendar.timegm(value.timetuple())
+
+        if isinstance(value, string_types):
+            try:
+                return int(value)
+            except ValueError:
+                pass
 
         try:
-            return datetime.strptime(value, self.DATETIME_FORMAT)
+            return calendar.timegm(datetime.strptime(value, self.DATETIME_FORMAT).timetuple())
         except (ValueError, TypeError):
-            try:
-                return datetime.strptime(value, self.DATE_FORMAT)
-            except (ValueError, TypeError):
-                raise AssertionError("{0} is not a valid datetime type.".format(value))
+            pass
+
+        try:
+            return calendar.timegm(datetime.strptime(value, self.DATE_FORMAT).timetuple())
+        except (ValueError, TypeError):
+            raise AssertionError("{0} is not a valid datetime type.".format(value))
 
     @type_operator(FIELD_DATETIME)
     def equal_to(self, other_datetime):
