@@ -12,7 +12,7 @@ from business_rules.operators import (
     BaseType,
     DateTimeType,
 )
-from . import TestCase
+from tests import TestCase
 
 
 class BaseTypeOperatorTests(TestCase):

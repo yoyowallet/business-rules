@@ -2,11 +2,13 @@ import inspect
 import re
 from decimal import Decimal
 from functools import wraps
-from datetime import datetime, date
+from datetime import datetime, date, time
 from six import string_types, integer_types
 import calendar
 
-from .fields import (FIELD_TEXT, FIELD_NUMERIC, FIELD_NO_INPUT, FIELD_SELECT, FIELD_SELECT_MULTIPLE, FIELD_DATETIME)
+from .fields import (
+    FIELD_TEXT, FIELD_NUMERIC, FIELD_NO_INPUT, FIELD_SELECT, FIELD_SELECT_MULTIPLE, FIELD_DATETIME, FIELD_TIME
+)
 from .utils import fn_name_to_pretty_label, float_to_decimal
 
 
@@ -292,3 +294,48 @@ class DateTimeType(BaseType):
     @type_operator(FIELD_DATETIME)
     def before_than_or_equal_to(self, other_datetime):
         return self.before_than(other_datetime) or self.equal_to(other_datetime)
+
+
+@export_type
+class TimeType(BaseType):
+    name = "time"
+    TIME_FORMAT = '%H:%M:%S'
+
+    def _assert_valid_value_and_cast(self, value):
+        """
+        Parse datetime, date or string with format %H:%M:%S into time instance.
+
+        :param value: datetime, date or string with format %H:%M:%S
+        :return: time
+        """
+        if isinstance(value, time):
+            return value
+
+        if isinstance(value, datetime):
+            return time(value.hour, value.minute, value.second)
+
+        try:
+            dt = datetime.strptime(value, self.TIME_FORMAT)
+            return time(dt.hour, dt.minute, dt.second)
+        except (ValueError, TypeError):
+            raise AssertionError("{0} is not a valid time type.".format(value))
+
+    @type_operator(FIELD_TIME)
+    def equal_to(self, other_time):
+        return self.value == other_time
+
+    @type_operator(FIELD_TIME)
+    def after_than(self, other_time):
+        return self.value > other_time
+
+    @type_operator(FIELD_TIME)
+    def after_than_or_equal_to(self, other_time):
+        return self.after_than(other_time) or self.equal_to(other_time)
+
+    @type_operator(FIELD_TIME)
+    def before_than(self, other_time):
+        return self.value < other_time
+
+    @type_operator(FIELD_TIME)
+    def before_than_or_equal_to(self, other_time):
+        return self.before_than(other_time) or self.equal_to(other_time)

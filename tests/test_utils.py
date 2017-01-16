@@ -1,7 +1,7 @@
 from business_rules import utils
 from tests.test_integration import SomeVariables, SomeActions
 from business_rules import fields
-from business_rules.fields import FIELD_DATETIME
+from business_rules.fields import FIELD_DATETIME, FIELD_TIME
 
 
 def test_fn_name_to_pretty_label():
@@ -33,7 +33,7 @@ def test_fn_name_to_pretty_label_with_different_cases():
 def test_get_valid_fields():
     valid_fields = utils.get_valid_fields()
 
-    assert len(valid_fields) == 6
+    assert len(valid_fields) == 7
 
 
 def test_params_dict_to_list_when_params_none():
@@ -190,4 +190,32 @@ def test_export_rule_data():
                    {'input_type': 'none', 'label': 'Non Empty',
                     'name': 'non_empty'},
                    {'input_type': 'text', 'label': 'Starts With',
-                    'name': 'starts_with'}]}
+                    'name': 'starts_with'}],
+        'time': [
+            {
+                'input_type': FIELD_TIME,
+                'label': 'After Than',
+                'name': 'after_than'
+            },
+            {
+                'input_type': FIELD_TIME,
+                'label': 'After Than Or Equal To',
+                'name': 'after_than_or_equal_to'
+            },
+            {
+                'input_type': FIELD_TIME,
+                'label': 'Before Than',
+                'name': 'before_than'
+            },
+            {
+                'input_type': FIELD_TIME,
+                'label': 'Before Than Or Equal To',
+                'name': 'before_than_or_equal_to'
+            },
+            {
+                'input_type': FIELD_TIME,
+                'label': 'Equal To',
+                'name': 'equal_to'
+            },
+        ],
+    }
