@@ -1,7 +1,8 @@
 import inspect
 from decimal import Decimal, Inexact, Context
 
-import fields
+import fields, engine
+from util import method_type
 
 
 def fn_name_to_pretty_label(name):
@@ -85,3 +86,64 @@ def params_dict_to_list(params):
             'field_type': param_field_type
         } for name, param_field_type in params.items()
     ]
+
+
+def validate_rule_data(variables, actions, rule):
+    """
+    validate_rule_data is used to check a generated rule against a set of variables and actions
+    :param variables:
+    :param actions:
+    :param rule:
+    :return: bool
+    """
+    def validate_root_keys(rule):
+        root_keys = rule.keys()
+        if 'actions' not in root_keys:
+            raise AssertionError('Missing "{}" key'.format('actions'))
+        if 'conditions' not in root_keys:
+            raise AssertionError('Missing "{}" key'.format('conditions'))
+
+    def validate_condition_operator(condition, rule_schema):
+        for item in rule_schema.get('variables'):
+            if item.get('name') == condition.get('name'):
+                condition_field_type = item.get('field_type')
+                variable_operators = rule_schema.get('variable_type_operators', {}).get(condition_field_type, [])
+                for operators in variable_operators:
+                    if operators['name'] == condition['operator']:
+                        return True
+                raise AssertionError('Unknown operator "{}"'.format(condition['operator']))
+
+    def validate_conditions(input_conditions, rule_schema):
+        if isinstance(input_conditions, list):
+            for condition in input_conditions:
+                validate_conditions(condition, rule_schema)
+        if isinstance(input_conditions, dict):
+            keys = input_conditions.keys()
+            if 'any' in keys or 'all' in keys:
+                if len(keys) > 1:
+                    raise AssertionError('Expected ONE of "any" or "all" but found {}'.format(keys))
+                else:
+                    for k, v in input_conditions.iteritems():
+                        validate_conditions(v, rule_schema)
+            else:
+                validate_condition_operator(input_conditions, rule_schema)
+                condition_name = input_conditions.get('name')
+                if not condition_name:
+                    raise AssertionError('Missing condition "name" key in {}'.format(input_conditions))
+                if not hasattr(variables, condition_name):
+                    raise AssertionError('Unknown condition "{}"'.format(condition_name))
+                method = getattr(variables, input_conditions.get('name'))
+                params = input_conditions.get('params', {})
+                engine._check_params_valid_for_method(method, params, method_type.METHOD_TYPE_VARIABLE)
+
+    def validate_actions(input_actions):
+        for action in input_actions:
+            method = getattr(actions, action.get('name'))
+            params = action.get('params', {})
+            engine._check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
+
+    rule_schema = export_rule_data(variables, actions)
+    validate_root_keys(rule)
+    validate_conditions(rule.get('conditions'), rule_schema)
+    validate_actions(rule.get('actions'))
+    return True
