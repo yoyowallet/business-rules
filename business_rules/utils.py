@@ -88,6 +88,32 @@ def params_dict_to_list(params):
     ]
 
 
+def check_params_valid_for_method(method, given_params, method_type_name):
+    """
+    Verifies that the given parameters (defined in the Rule) match the names of those defined in
+    the variable or action decorator. Raise an error if one of the sets contains a parameter that
+    the other does not.
+
+    :param method:
+    :param given_params: Parameters defined within the Rule (Action or Condition)
+    :param method_type_name: A method type defined in util.method_type module
+    :return: None. Raise exception if parameters don't match (defined in method and Rule)
+    """
+    method_params = params_dict_to_list(method.params)
+    defined_params = [param.get('name') for param in method_params]
+    missing_params = set(defined_params).difference(given_params)
+
+    if missing_params:
+        raise AssertionError("Missing parameters {0} for {1} {2}".format(
+            ', '.join(missing_params), method_type_name, method.__name__))
+
+    invalid_params = set(given_params).difference(defined_params)
+
+    if invalid_params:
+        raise AssertionError("Invalid parameters {0} for {1} {2}".format(
+            ', '.join(invalid_params), method_type_name, method.__name__))
+
+
 def validate_rule_data(variables, actions, rule):
     """
     validate_rule_data is used to check a generated rule against a set of variables and actions
@@ -135,7 +161,7 @@ def validate_rule_data(variables, actions, rule):
         validate_condition_operator(condition, rule_schema)
         method = getattr(variables, condition.get('name'))
         params = condition.get('params', {})
-        engine._check_params_valid_for_method(method, params, method_type.METHOD_TYPE_VARIABLE)
+        check_params_valid_for_method(method, params, method_type.METHOD_TYPE_VARIABLE)
 
     def validate_conditions(input_conditions, rule_schema):
         """
@@ -162,7 +188,7 @@ def validate_rule_data(variables, actions, rule):
         for action in input_actions:
             method = getattr(actions, action.get('name'))
             params = action.get('params', {})
-            engine._check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
+            check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
 
     rule_schema = export_rule_data(variables, actions)
     validate_root_keys(rule)

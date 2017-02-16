@@ -277,6 +277,43 @@ def test_validate_rule_data_success():
     utils.validate_rule_data(variables.TestVariables, actions.TestActions, valid_rule)
 
 
+def test_validate_rule_data_nested_success():
+    valid_rule = {
+        'conditions': {
+            'any': [
+                {
+                    'name': 'bool_variable',
+                    'operator': 'is_false',
+                    'value': ''
+                },
+                {
+                    "all": [
+                        {
+                            'name': 'str_variable',
+                            'operator': 'contains',
+                            'value': 'test'
+                        },
+                        {
+                            'name': 'select_multiple_variable',
+                            'operator': 'contains_all',
+                            'value': [1, 2, 3]
+                        },
+                    ]
+                }
+            ]
+        },
+        'actions': [
+            {
+                'name': 'example_action',
+                'params': {
+                    'param': 1
+                }
+            }
+        ]
+    }
+    utils.validate_rule_data(variables.TestVariables, actions.TestActions, valid_rule)
+
+
 def test_validate_rule_data_empty_dict():
     with pytest.raises(AssertionError):
         utils.validate_rule_data(variables.TestVariables, actions.TestActions, {})
