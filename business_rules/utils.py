@@ -177,7 +177,7 @@ def validate_rule_data(variables, actions, rule):
                 if len(keys) > 1:
                     raise AssertionError('Expected ONE of "any" or "all" but found {}'.format(keys))
                 else:
-                    for k, v in input_conditions.iteritems():
+                    for _, v in input_conditions.iteritems():
                         validate_conditions(v, rule_schema)
             else:
                 validate_condition(input_conditions, variables, rule_schema)
