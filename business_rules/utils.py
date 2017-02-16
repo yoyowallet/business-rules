@@ -95,8 +95,12 @@ def validate_rule_data(variables, actions, rule):
     :param actions:
     :param rule:
     :return: bool
+    :raises AssertionError:
     """
     def validate_root_keys(rule):
+        """
+        Check the root object contains both 'actions' & 'conditions'
+        """
         root_keys = rule.keys()
         if 'actions' not in root_keys:
             raise AssertionError('Missing "{}" key'.format('actions'))
@@ -104,6 +108,9 @@ def validate_rule_data(variables, actions, rule):
             raise AssertionError('Missing "{}" key'.format('conditions'))
 
     def validate_condition_operator(condition, rule_schema):
+        """
+        Check provided condition contains a valid operator
+        """
         for item in rule_schema.get('variables'):
             if item.get('name') == condition.get('name'):
                 condition_field_type = item.get('field_type')
@@ -113,7 +120,27 @@ def validate_rule_data(variables, actions, rule):
                         return True
                 raise AssertionError('Unknown operator "{}"'.format(condition['operator']))
 
+    def validate_condition_name(condition, variables):
+        """
+        Check provided condition contains a 'name' key and the value is valid
+        """
+        condition_name = condition.get('name')
+        if not condition_name:
+            raise AssertionError('Missing condition "name" key in {}'.format(condition))
+        if not hasattr(variables, condition_name):
+            raise AssertionError('Unknown condition "{}"'.format(condition_name))
+
+    def validate_condition(condition, variables, rule_schema):
+        validate_condition_name(condition, variables)
+        validate_condition_operator(condition, rule_schema)
+        method = getattr(variables, condition.get('name'))
+        params = condition.get('params', {})
+        engine._check_params_valid_for_method(method, params, method_type.METHOD_TYPE_VARIABLE)
+
     def validate_conditions(input_conditions, rule_schema):
+        """
+        Recursively check all levels of input conditions
+        """
         if isinstance(input_conditions, list):
             for condition in input_conditions:
                 validate_conditions(condition, rule_schema)
@@ -126,17 +153,12 @@ def validate_rule_data(variables, actions, rule):
                     for k, v in input_conditions.iteritems():
                         validate_conditions(v, rule_schema)
             else:
-                validate_condition_operator(input_conditions, rule_schema)
-                condition_name = input_conditions.get('name')
-                if not condition_name:
-                    raise AssertionError('Missing condition "name" key in {}'.format(input_conditions))
-                if not hasattr(variables, condition_name):
-                    raise AssertionError('Unknown condition "{}"'.format(condition_name))
-                method = getattr(variables, input_conditions.get('name'))
-                params = input_conditions.get('params', {})
-                engine._check_params_valid_for_method(method, params, method_type.METHOD_TYPE_VARIABLE)
+                validate_condition(input_conditions, variables, rule_schema)
 
     def validate_actions(input_actions):
+        """
+        Check all input actions contain valid names and parameters for defined actions
+        """
         for action in input_actions:
             method = getattr(actions, action.get('name'))
             params = action.get('params', {})
