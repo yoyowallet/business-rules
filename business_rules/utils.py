@@ -145,6 +145,7 @@ def validate_rule_data(variables, actions, rule):
                     if operators['name'] == condition['operator']:
                         return True
                 raise AssertionError('Unknown operator "{}"'.format(condition['operator']))
+        raise AssertionError('Name "{}" not supported'.format(condition.get('name')))
 
     def validate_condition_name(condition, variables):
         """
