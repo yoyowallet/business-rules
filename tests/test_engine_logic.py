@@ -109,7 +109,7 @@ class EngineTests(TestCase):
         rule = {"conditions": conditions, "actions": []}
 
         result = engine.check_conditions_recursively(conditions, variables, rule)
-        self.assertEqual(result, (False, [(False,)]))
+        self.assertEqual(result, (False, []))
         engine.check_condition.assert_called_once_with({'thing1': ''}, variables, rule)
 
     def test_check_all_condition_with_no_items_fails(self):
@@ -136,7 +136,7 @@ class EngineTests(TestCase):
         rule = {'conditions': conditions, 'actions': []}
 
         result = engine.check_conditions_recursively(conditions, variables, rule)
-        self.assertEqual(result, (False, [(False,), (False,)]))
+        self.assertEqual(result, (False, []))
         # assert call count and most recent call are as expected
         self.assertEqual(engine.check_condition.call_count, 2)
         engine.check_condition.assert_called_with(conditions['any'][1], variables, rule)
