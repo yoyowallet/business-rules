@@ -291,3 +291,256 @@ class EngineTests(TestCase):
         with self.assertRaisesRegexp(AssertionError, err_string):
             engine.do_actions(actions, BaseActions(), defined_validators,
                               defined_variables, checked_conditions_results, rule)
+
+
+class EngineCheckConditionsTests(TestCase):
+
+    def test_case1(self):
+        """ cond1: true and cond2: false => [] """
+        conditions = {
+            'all': [
+                {'name': 'true_variable', 'operator': 'is_true', 'value': ''},
+                {'name': 'true_variable', 'operator': 'is_false', 'value': ''}
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (False, []))
+
+    def test_case2(self):
+        """
+        cond1: false and cond2: true => []
+        """
+        conditions = {
+            'all': [
+                {'name': 'true_variable', 'operator': 'is_false', 'value': ''},
+                {'name': 'true_variable', 'operator': 'is_true', 'value': ''}
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (False, []))
+
+    def test_case3(self):
+        """
+        cond1: true and cond2: true => [cond1, cond2]
+        """
+        conditions = {
+            'all': [
+                {'name': 'true_variable', 'operator': 'is_true', 'value': ''},
+                {'name': 'true_variable', 'operator': 'is_true', 'value': ''}
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='', parameters={}),
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='', parameters={}),
+        ]))
+
+    def test_case4(self):
+        """
+        cond1: true and (cond2: false or cond3: true) => [cond1, cond3]
+        """
+        conditions = {
+            'all': [
+                {'name': 'true_variable', 'operator': 'is_true', 'value': '1'},
+                {
+                    'any': [
+                        {'name': 'true_variable', 'operator': 'is_false', 'value': '2'},
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '3'}
+                    ]
+                }
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='1', parameters={}),
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='3', parameters={}),
+        ]))
+
+    def test_case5(self):
+        """
+        cond1: false and (cond2: false or cond3: true) => []
+        """
+        conditions = {
+            'all': [
+                {'name': 'true_variable', 'operator': 'is_false', 'value': '1'},
+                {
+                    'any': [
+                        {'name': 'true_variable', 'operator': 'is_false', 'value': '2'},
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '3'}
+                    ]
+                }
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (False, []))
+
+    def test_case6(self):
+        """
+        cond1: true or (cond2: false or cond3: true) => [cond1]
+        """
+        conditions = {
+            'any': [
+                {'name': 'true_variable', 'operator': 'is_true', 'value': '1'},
+                {
+                    'any': [
+                        {'name': 'true_variable', 'operator': 'is_false', 'value': '2'},
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '3'}
+                    ]
+                }
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='1', parameters={}),
+        ]))
+
+    def test_case7(self):
+        """
+        cond1: false or (cond2: false or cond3: true) => [cond3]
+        """
+        conditions = {
+            'any': [
+                {'name': 'true_variable', 'operator': 'is_false', 'value': '1'},
+                {
+                    'any': [
+                        {'name': 'true_variable', 'operator': 'is_false', 'value': '2'},
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '3'}
+                    ]
+                }
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='3', parameters={}),
+        ]))
+
+    def test_case8(self):
+        """
+        cond1: false or (cond2: true and cond3: true) => [cond2, cond3]
+        """
+        conditions = {
+            'any': [
+                {'name': 'true_variable', 'operator': 'is_false', 'value': '1'},
+                {
+                    'all': [
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '2'},
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '3'}
+                    ]
+                }
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='2', parameters={}),
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='3', parameters={}),
+        ]))
+
+    def test_case9(self):
+        """
+        (cond2: true and cond3: true) or cond1: true => [cond2, cond3]
+        """
+        conditions = {
+            'any': [
+                {
+                    'all': [
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '2'},
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '3'}
+                    ]
+                },
+                {'name': 'true_variable', 'operator': 'is_false', 'value': '1'},
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='2', parameters={}),
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='3', parameters={}),
+        ]))
+
+    def test_case10(self):
+        """
+        cond1: true or cond2: false => [cond1]
+        """
+        conditions = {
+            'any': [
+                {'name': 'true_variable', 'operator': 'is_true', 'value': '1'},
+                {'name': 'true_variable', 'operator': 'is_false', 'value': '2'},
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='1', parameters={}),
+        ]))
+
+    def test_case11(self):
+        """
+        cond1: false or cond2: true => [cond2]
+        """
+        conditions = {
+            'any': [
+                {'name': 'true_variable', 'operator': 'is_false', 'value': '1'},
+                {'name': 'true_variable', 'operator': 'is_true', 'value': '2'},
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='2', parameters={}),
+        ]))
+
+    def test_case12(self):
+        """
+        cond1: true or cond2: true => [cond1]
+        """
+        conditions = {
+            'any': [
+                {'name': 'true_variable', 'operator': 'is_true', 'value': '1'},
+                {'name': 'true_variable', 'operator': 'is_true', 'value': '2'},
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='1', parameters={}),
+        ]))
+
+
+class TrueVariables(BaseVariables):
+    from business_rules.variables import boolean_rule_variable
+
+    @boolean_rule_variable
+    def true_variable(self):
+        return True
