@@ -537,6 +537,29 @@ class EngineCheckConditionsTests(TestCase):
             ConditionResult(result=True, name='true_variable', operator='is_true', value='1', parameters={}),
         ]))
 
+    def test_case13(self):
+        """
+        (cond2: true and cond3: false) or cond1: true => [cond2, cond3]
+        """
+        conditions = {
+            'any': [
+                {
+                    'all': [
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '2'},
+                        {'name': 'true_variable', 'operator': 'is_false', 'value': '3'},
+                    ]
+                },
+                {'name': 'true_variable', 'operator': 'is_true', 'value': '1'},
+            ]
+        }
+        variables = TrueVariables()
+        rule = {'conditions': conditions, 'actions': []}
+
+        result = engine.check_conditions_recursively(conditions, variables, rule)
+        self.assertEqual(result, (True, [
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='1', parameters={}),
+        ]))
+
 
 class TrueVariables(BaseVariables):
     from business_rules.variables import boolean_rule_variable
