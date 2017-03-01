@@ -539,17 +539,17 @@ class EngineCheckConditionsTests(TestCase):
 
     def test_case13(self):
         """
-        (cond2: true and cond3: false) or cond1: true => [cond2, cond3]
+        (cond1: true and cond2: false) or cond3: true => [cond3]
         """
         conditions = {
             'any': [
                 {
                     'all': [
-                        {'name': 'true_variable', 'operator': 'is_true', 'value': '2'},
-                        {'name': 'true_variable', 'operator': 'is_false', 'value': '3'},
+                        {'name': 'true_variable', 'operator': 'is_true', 'value': '1'},
+                        {'name': 'true_variable', 'operator': 'is_false', 'value': '2'},
                     ]
                 },
-                {'name': 'true_variable', 'operator': 'is_true', 'value': '1'},
+                {'name': 'true_variable', 'operator': 'is_true', 'value': '3'},
             ]
         }
         variables = TrueVariables()
@@ -557,7 +557,7 @@ class EngineCheckConditionsTests(TestCase):
 
         result = engine.check_conditions_recursively(conditions, variables, rule)
         self.assertEqual(result, (True, [
-            ConditionResult(result=True, name='true_variable', operator='is_true', value='1', parameters={}),
+            ConditionResult(result=True, name='true_variable', operator='is_true', value='3', parameters={}),
         ]))
 
 
