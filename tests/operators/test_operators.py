@@ -293,9 +293,9 @@ class DateTimeOperatorTests(TestCase):
         self.assertFalse(datetime_type.after_than(self.TEST_DATETIME_UTC_OBJ + timedelta(seconds=1)))
 
     def test_datetime_after_than(self):
-        self.datetime_after_than_or_equal_to_asserts(self.datetime_type_datetime)
-        self.datetime_after_than_or_equal_to_asserts(self.datetime_type_datetime_obj)
-        self.datetime_after_than_or_equal_to_asserts(self.datetime_type_datetime_utc_obj)
+        self.datetime_after_than_asserts(self.datetime_type_datetime)
+        self.datetime_after_than_asserts(self.datetime_type_datetime_obj)
+        self.datetime_after_than_asserts(self.datetime_type_datetime_utc_obj)
 
         self.assertFalse(self.datetime_type_date.after_than(self.TEST_DATE))
         self.assertFalse(self.datetime_type_date.after_than(self.TEST_DATETIME_OBJ + timedelta(seconds=1)))
