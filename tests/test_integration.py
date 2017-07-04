@@ -32,6 +32,10 @@ class SomeVariables(BaseVariables):
     def string_variable_with_options(self):
         return "foo"
 
+    @string_rule_variable(public=False)
+    def private_string_variable(self):
+        return 'foo'
+
 
 class SomeActions(BaseActions):
     @rule_action(params={"foo": FIELD_NUMERIC})
