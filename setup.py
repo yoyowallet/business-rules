@@ -12,7 +12,7 @@ description = 'Python DSL for setting up business intelligence rules that can be
 
 install_requires = [
     'pytz>=2016.10',
-    'typing>=3.6.1',
+    'typing',
 ]
 
 setuptools.setup(
