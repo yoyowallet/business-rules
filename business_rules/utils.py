@@ -134,8 +134,6 @@ def validate_rule_data(variables, actions, rule):
         root_keys = rule.keys()
         if 'actions' not in root_keys:
             raise AssertionError('Missing "{}" key'.format('actions'))
-        if 'conditions' not in root_keys:
-            raise AssertionError('Missing "{}" key'.format('conditions'))
 
     def validate_condition_operator(condition, rule_schema):
         """
@@ -202,7 +200,7 @@ def validate_rule_data(variables, actions, rule):
     rule_schema = export_rule_data(variables, actions)
     validate_root_keys(rule)
     conditions = rule.get('conditions', None)
-    if type(conditions) is not dict:
+    if conditions is not None and type(conditions) is not dict:
         raise AssertionError('"conditions" must be a dictionary')
     validate_conditions(conditions, rule_schema)
     validate_actions(rule.get('actions'))

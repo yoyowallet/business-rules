@@ -53,11 +53,15 @@ def test_export_rule_data():
 
     assert all_data.get("actions") == [
         {
+            "name": "action_with_no_params",
+            "label": "Action With No Params",
+            "params": None
+        },
+        {
             "name": "some_action",
             "label": "Some Action",
             "params": [
                 {
-                    'bypass_validator': False,
                     'fieldType': 'numeric',
                     'label': 'Foo',
                     'name': 'foo'
@@ -69,7 +73,6 @@ def test_export_rule_data():
             "label": "woohoo",
             "params": [
                 {
-                    'bypass_validator': False,
                     'fieldType': 'text',
                     'label': 'Bar',
                     'name': 'bar'
@@ -361,12 +364,12 @@ def test_validate_rule_data_empty_dict():
         utils.validate_rule_data(variables.TestVariables, actions.TestActions, {})
 
 
-def test_validate_rule_data_extra_no_conditions():
+def test_validate_rule_data_no_conditions():
     invalid_rule = {
         'actions': []
     }
-    with pytest.raises(AssertionError):
-        utils.validate_rule_data(variables.TestVariables, actions.TestActions, invalid_rule)
+
+    utils.validate_rule_data(variables.TestVariables, actions.TestActions, invalid_rule)
 
 
 def test_validate_rule_data_no_actions():
@@ -438,6 +441,22 @@ def test_validate_rule_data_unknown_condition_operator():
         utils.validate_rule_data(variables.TestVariables, actions.TestActions, invalid_rule)
 
 
+def test_validate_rule_data_missing_condition_operator():
+    invalid_rule = {
+        'conditions': {
+            'any': [
+                {
+                    'name': 'bool_variable',
+                    'value': ''
+                }
+            ]
+        },
+        'actions': []
+    }
+    with pytest.raises(AssertionError):
+        utils.validate_rule_data(variables.TestVariables, actions.TestActions, invalid_rule)
+
+
 def test_validate_rule_data_bool_value_ignored():
     invalid_rule = {
         'conditions': {
@@ -484,6 +503,57 @@ def test_validate_rule_data_unknown_condition_key():
             ]
         },
         'actions': []
+    }
+    with pytest.raises(AssertionError):
+        utils.validate_rule_data(variables.TestVariables, actions.TestActions, invalid_rule)
+
+
+def test_validate_rule_multiple_special_keys_in_condition():
+    """ A rule cannot contain more than one 'any' or 'all' keys """
+    invalid_rule = {
+        'conditions': {
+            'any': [
+                {
+                    'name': 'bool_variable',
+                    'operator': 'is_false',
+                    'value': ''
+                }
+            ],
+            'all': [
+                {
+                    'name': 'bool_variable',
+                    'operator': 'is_false',
+                    'value': ''
+                }
+            ]
+        },
+        'actions': []
+    }
+    with pytest.raises(AssertionError):
+        utils.validate_rule_data(variables.TestVariables, actions.TestActions, invalid_rule)
+
+
+def test_validate_rule_actions_is_not_a_list():
+    invalid_rule = {
+        'conditions': {
+            'any': [
+                {
+                    'name': 'bool_variable',
+                    'operator': 'is_false',
+                    'value': ''
+                }
+            ]
+        },
+        'actions': {}
+    }
+    with pytest.raises(AssertionError):
+        utils.validate_rule_data(variables.TestVariables, actions.TestActions, invalid_rule)
+
+
+def test_validate_rule_contions_is_not_a_dictionary():
+    invalid_rule = {
+        'conditions': [],
+        'actions': {}
     }
     with pytest.raises(AssertionError):
         utils.validate_rule_data(variables.TestVariables, actions.TestActions, invalid_rule)
