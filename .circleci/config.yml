@@ -15,4 +15,6 @@ jobs:
             make deps
       - run:
           name: Run Tests
-          command: make coverage
+          command: |
+          . venv/bin/activate
+          make coverage
