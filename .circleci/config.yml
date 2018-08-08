@@ -16,5 +16,5 @@ jobs:
       - run:
           name: Run Tests
           command: |
-          . venv/bin/activate
-          make coverage
+            . venv/bin/activate
+            make coverage
