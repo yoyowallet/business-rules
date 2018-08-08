@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:2.7.15-jessie-browsers
+      - image: circleci/python:2.7.11
     steps:
       - checkout
       - run:
