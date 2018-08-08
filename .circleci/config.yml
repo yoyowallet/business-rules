@@ -2,7 +2,6 @@ version: 2
 
 jobs:
   build:
-    working_directory: ~/business-rules
     docker:
       - image: circleci/python:2.7.15-jessie-browsers
     steps:
