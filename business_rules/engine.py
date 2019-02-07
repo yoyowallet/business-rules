@@ -231,7 +231,7 @@ def _build_variable_parameters(method, parameters, rule):
 
 
 def _build_parameters(method, parameters, extra_parameters):
-    if getfullargspec(method).keywords is not None:
+    if getfullargspec(method).varkw is not None:
         method_params = extra_parameters
     else:
         method_params = {}
