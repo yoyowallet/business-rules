@@ -1,9 +1,11 @@
 from __future__ import absolute_import
+
+import pytest
 from mock import patch, MagicMock
 
 from business_rules import engine
 from business_rules import fields
-from business_rules.actions import BaseActions
+from business_rules.actions import BaseActions, ActionParam
 from business_rules.models import ConditionResult
 from business_rules.operators import StringType
 from business_rules.variables import BaseVariables
@@ -279,6 +281,40 @@ class EngineTests(TestCase):
 
         with self.assertRaisesRegexp(AssertionError, err_string):
             engine.do_actions(actions, BaseActions(), checked_conditions_results, rule)
+
+    def test_do_with_parameter_with_default_value(self):
+        function_params_mock = MagicMock()
+        function_params_mock.varkw = None
+        with patch('business_rules.engine.getfullargspec', return_value=function_params_mock):
+            # param2 is not set in rule, but there is a default parameter for it in action which will be used instead
+            rule_actions = [
+                {
+                    'name': 'action',
+                    'params': {'param1': 'foo'}
+                }
+            ]
+
+            rule = {
+                'conditions': {
+
+                },
+                'actions': rule_actions
+            }
+
+            defined_actions = BaseActions()
+
+            action_param = ActionParam(field_type=fields.FIELD_NUMERIC, default_value=42)
+            defined_actions.action = MagicMock()
+            defined_actions.action.params = {
+                'param1': fields.FIELD_TEXT,
+                'param2': action_param
+            }
+
+            payload = [(True, 'condition_name', 'operator_name', 'condition_value')]
+
+            engine.do_actions(rule_actions, defined_actions, payload, rule)
+
+            defined_actions.action.assert_called_once_with(param1='foo', param2=42)
 
 
 class EngineCheckConditionsTests(TestCase):

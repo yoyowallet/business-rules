@@ -1,6 +1,6 @@
 from __future__ import absolute_import
-from business_rules.actions import BaseActions, rule_action
-from business_rules.fields import FIELD_TEXT
+from business_rules.actions import BaseActions, rule_action, ActionParam
+from business_rules.fields import FIELD_TEXT, FIELD_NUMERIC
 from . import TestCase
 
 
@@ -29,7 +29,7 @@ class ActionsClassTests(TestCase):
         self.assertEqual(actions[0]['name'], 'some_action')
         self.assertEqual(actions[0]['label'], 'Some Action')
         self.assertEqual(actions[0]['params'], [
-            {'fieldType': FIELD_TEXT, 'name': 'foo', 'label': 'Foo'},
+            {'fieldType': FIELD_TEXT, 'name': 'foo', 'label': 'Foo', 'defaultValue': None},
         ])
 
         # should work on an instance of the class too

@@ -109,6 +109,10 @@ def check_params_valid_for_method(method, given_params, method_type_name):
     defined_params = [param.get('name') for param in method_params]
     missing_params = set(defined_params).difference(given_params)
 
+    # check for default value, if it is present, exclude param from missing params
+    if method_type_name == method_type.METHOD_TYPE_ACTION:
+        check_for_default_value_for_missing_params(missing_params, method.params)
+
     if missing_params:
         raise AssertionError("Missing parameters {0} for {1} {2}".format(
             ', '.join(missing_params), method_type_name, method.__name__))
@@ -118,6 +122,29 @@ def check_params_valid_for_method(method, given_params, method_type_name):
     if invalid_params:
         raise AssertionError("Invalid parameters {0} for {1} {2}".format(
             ', '.join(invalid_params), method_type_name, method.__name__))
+
+
+def check_for_default_value_for_missing_params(missing_params: set, method_params: list) -> set:
+    """
+    :param missing_params: Params missing from Rule
+    :param method_params: Params defined on method, which could have default value for missing param
+    [{
+     'label': 'release voucher from template',
+     'name': 'voucher_template_id',
+     'fieldType': 'numeric',
+     'defaultValue': 123
+    },
+    ...
+    ]
+    :return Updated missing parameters:
+    """
+    if method_params:
+        for param in method_params:
+            if isinstance(param, str) and param in missing_params and getattr(method_params[param], 'default_value',
+                                                                              None):
+                missing_params.remove(param)
+
+    return missing_params
 
 
 def validate_rule_data(variables, actions, rule):
@@ -196,10 +223,13 @@ def validate_rule_data(variables, actions, rule):
         """
         if type(input_actions) is not list:
             raise AssertionError('"actions" key must be a list')
-        for action in input_actions:
-            method = getattr(actions, action.get('name'), None)
-            params = action.get('params', {})
-            check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
+        try:
+            for action in input_actions:
+                method = getattr(actions, action.get('name'), None)
+                params = action.get('params', {})
+                check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
+        except TypeError:
+            import pdb;pdb.set_trace()
 
     rule_schema = export_rule_data(variables, actions)
     validate_root_keys(rule)

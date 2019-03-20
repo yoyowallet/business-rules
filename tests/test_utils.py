@@ -65,7 +65,8 @@ def test_export_rule_data():
                 {
                     'fieldType': 'numeric',
                     'label': 'Foo',
-                    'name': 'foo'
+                    'name': 'foo',
+                    'defaultValue': None
                 }
             ]
         },
@@ -76,7 +77,8 @@ def test_export_rule_data():
                 {
                     'fieldType': 'text',
                     'label': 'Bar',
-                    'name': 'bar'
+                    'name': 'bar',
+                    'defaultValue': None
                 }
             ]
         },
