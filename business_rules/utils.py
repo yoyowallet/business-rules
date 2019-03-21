@@ -124,7 +124,7 @@ def check_params_valid_for_method(method, given_params, method_type_name):
             ', '.join(invalid_params), method_type_name, method.__name__))
 
 
-def check_for_default_value_for_missing_params(missing_params: set, method_params: list) -> set:
+def check_for_default_value_for_missing_params(missing_params, method_params):
     """
     :param missing_params: Params missing from Rule
     :param method_params: Params defined on method, which could have default value for missing param
