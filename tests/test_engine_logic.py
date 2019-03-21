@@ -5,7 +5,8 @@ from mock import patch, MagicMock
 
 from business_rules import engine
 from business_rules import fields
-from business_rules.actions import BaseActions, ActionParam
+from business_rules.actions import BaseActions, ActionParam, rule_action
+from business_rules.fields import FIELD_TEXT, FIELD_NUMERIC
 from business_rules.models import ConditionResult
 from business_rules.operators import StringType
 from business_rules.variables import BaseVariables
@@ -216,21 +217,26 @@ class EngineTests(TestCase):
                 'actions': rule_actions
             }
 
-            defined_actions = BaseActions()
+            action1_mock = MagicMock()
+            action2_mock = MagicMock()
 
-            defined_actions.action1 = MagicMock()
-            defined_actions.action2 = MagicMock()
-            defined_actions.action2.params = {
-                'param1': fields.FIELD_TEXT,
-                'param2': fields.FIELD_NUMERIC
-            }
+            class SomeActions(BaseActions):
+                @rule_action()
+                def action1(self):
+                    return action1_mock()
+
+                @rule_action(params={'param1': FIELD_TEXT, "param2": FIELD_NUMERIC})
+                def action2(self, param1, param2):
+                    return action2_mock(param1=param1, param2=param2)
+
+            defined_actions = SomeActions()
 
             payload = [(True, 'condition_name', 'operator_name', 'condition_value')]
 
             engine.do_actions(rule_actions, defined_actions, payload, rule)
 
-            defined_actions.action1.assert_called_once_with()
-            defined_actions.action2.assert_called_once_with(param1='foo', param2=10)
+            action1_mock.assert_called_once_with()
+            action2_mock.assert_called_once_with(param1='foo', param2=10)
 
     def test_do_actions_with_injected_parameters(self):
         function_params_mock = MagicMock()
@@ -255,12 +261,21 @@ class EngineTests(TestCase):
 
             defined_actions = BaseActions()
             defined_actions.action1 = MagicMock()
+            defined_actions.action1.params = []
             defined_actions.action2 = MagicMock()
-            defined_actions.action2.params = {
-                'param1': fields.FIELD_TEXT,
-                'param2': fields.FIELD_NUMERIC
-            }
-
+            defined_actions.action2.params = [{
+                'label': 'action2',
+                'name': 'param1',
+                'fieldType': fields.FIELD_TEXT,
+                'defaultValue': None
+            },
+                {
+                    'label': 'action2',
+                    'name': 'param2',
+                    'fieldType': fields.FIELD_NUMERIC,
+                    'defaultValue': None
+                }
+            ]
             payload = [(True, 'condition_name', 'operator_name', 'condition_value')]
 
             engine.do_actions(rule_actions, defined_actions, payload, rule)
@@ -289,7 +304,7 @@ class EngineTests(TestCase):
             # param2 is not set in rule, but there is a default parameter for it in action which will be used instead
             rule_actions = [
                 {
-                    'name': 'action',
+                    'name': 'some_action',
                     'params': {'param1': 'foo'}
                 }
             ]
@@ -301,7 +316,16 @@ class EngineTests(TestCase):
                 'actions': rule_actions
             }
 
-            defined_actions = BaseActions()
+            action_param_with_default_value = ActionParam(field_type=fields.FIELD_NUMERIC, default_value=42)
+
+            action_mock = MagicMock()
+
+            class SomeActions(BaseActions):
+                @rule_action(params={'param1': FIELD_TEXT, 'param2': action_param_with_default_value})
+                def some_action(self, param1, param2):
+                    return action_mock(param1=param1, param2=param2)
+
+            defined_actions = SomeActions()
 
             action_param = ActionParam(field_type=fields.FIELD_NUMERIC, default_value=42)
             defined_actions.action = MagicMock()
@@ -314,7 +338,7 @@ class EngineTests(TestCase):
 
             engine.do_actions(rule_actions, defined_actions, payload, rule)
 
-            defined_actions.action.assert_called_once_with(param1='foo', param2=42)
+            action_mock.assert_called_once_with(param1='foo', param2=42)
 
 
 class EngineCheckConditionsTests(TestCase):

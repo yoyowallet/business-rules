@@ -238,8 +238,9 @@ def _build_parameters(method, parameters, extra_parameters):
 
     if method.params:
         for param in method.params:
-            if isinstance(param, str) and getattr(method.params[param], 'default_value', None):
-                parameters[param] = method.params[param].default_value
+            default_param = param.get('defaultValue')
+            if default_param:
+                parameters[param['name']] = default_param
 
     method_params.update(parameters)
 

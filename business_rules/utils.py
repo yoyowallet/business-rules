@@ -111,7 +111,7 @@ def check_params_valid_for_method(method, given_params, method_type_name):
 
     # check for default value, if it is present, exclude param from missing params
     if method_type_name == method_type.METHOD_TYPE_ACTION:
-        check_for_default_value_for_missing_params(missing_params, method.params)
+        check_for_default_value_for_missing_params(missing_params, method_params)
 
     if missing_params:
         raise AssertionError("Missing parameters {0} for {1} {2}".format(
@@ -140,9 +140,8 @@ def check_for_default_value_for_missing_params(missing_params: set, method_param
     """
     if method_params:
         for param in method_params:
-            if isinstance(param, str) and param in missing_params and getattr(method_params[param], 'default_value',
-                                                                              None):
-                missing_params.remove(param)
+            if param['name'] in missing_params and param.get('defaultValue'):
+                missing_params.remove(param['name'])
 
     return missing_params
 
@@ -223,13 +222,11 @@ def validate_rule_data(variables, actions, rule):
         """
         if type(input_actions) is not list:
             raise AssertionError('"actions" key must be a list')
-        try:
-            for action in input_actions:
-                method = getattr(actions, action.get('name'), None)
-                params = action.get('params', {})
-                check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
-        except TypeError:
-            import pdb;pdb.set_trace()
+        for action in input_actions:
+            # params here are json params from rule
+            method = getattr(actions, action.get('name'), None)
+            params = action.get('params', {})
+            check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
 
     rule_schema = export_rule_data(variables, actions)
     validate_root_keys(rule)

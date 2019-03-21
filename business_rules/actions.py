@@ -25,6 +25,12 @@ def _validate_action_parameters(func, params):
     function `func`, and that the field types are FIELD_* types in fields.
     :param func:
     :param params:
+                {
+                 'label': 'release voucher from template',
+                 'name': 'voucher_template_id',
+                 'fieldType': 'numeric',
+                 'defaultValue': 123
+                }
     :return:
     """
     if params is not None:
@@ -33,8 +39,7 @@ def _validate_action_parameters(func, params):
 
         for param in params:
             param_name, field_type = param['name'], param['fieldType']
-            default_value = param.get('defaultValue')
-            if param_name not in func.__code__.co_varnames and not default_value:
+            if param_name not in func.__code__.co_varnames:
                 raise AssertionError("Unknown parameter name {0} specified for action {1}".format(
                     param_name, func.__name__))
 
