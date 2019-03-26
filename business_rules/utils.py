@@ -110,8 +110,11 @@ def check_params_valid_for_method(method, given_params, method_type_name):
     missing_params = set(defined_params).difference(given_params)
 
     # check for default value, if it is present, exclude param from missing params
+    params_with_default_value = set()
     if method_type_name == method_type.METHOD_TYPE_ACTION:
-        check_for_default_value_for_missing_params(missing_params, method_params)
+        params_with_default_value = check_for_default_value_for_missing_params(missing_params, method_params)
+
+    missing_params -= params_with_default_value
 
     if missing_params:
         raise AssertionError("Missing parameters {0} for {1} {2}".format(
@@ -136,14 +139,15 @@ def check_for_default_value_for_missing_params(missing_params, method_params):
     },
     ...
     ]
-    :return Updated missing parameters:
+    :return Params that are missing from rule but have default params: {'voucher_template_id'}
     """
+    params_with_default_value = set()
     if method_params:
         for param in method_params:
-            if param['name'] in missing_params and param.get('defaultValue'):
-                missing_params.remove(param['name'])
+            if param['name'] in missing_params and param.get('defaultValue') is not None:
+                params_with_default_value.add(param['name'])
 
-    return missing_params
+    return params_with_default_value
 
 
 def validate_rule_data(variables, actions, rule):
