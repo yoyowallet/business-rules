@@ -212,6 +212,12 @@ def _build_action_parameters(method, parameters, rule, conditions):
         'conditions': conditions
     }
 
+    if getattr(method, 'params'):
+        for param in method.params:
+            default_param = param.get('defaultValue')
+            if default_param:
+                parameters[param['name']] = default_param
+
     return _build_parameters(method, parameters, extra_parameters)
 
 
@@ -235,12 +241,6 @@ def _build_parameters(method, parameters, extra_parameters):
         method_params = extra_parameters
     else:
         method_params = {}
-
-    if method.params:
-        for param in method.params:
-            default_param = param.get('defaultValue')
-            if default_param:
-                parameters[param['name']] = default_param
 
     method_params.update(parameters)
 

@@ -51,12 +51,17 @@ def _validate_action_parameters(func, params):
 def rule_action(label=None, params=None):
     """
     Decorator to make a function into a rule action.
-    If value of params dictionary is field_type, defaultValue is None.
-    If action parameter requires a default value, ActionParam is used as value in parameters' dict.
-    It has field_type and default_value attributes which are used as fieldType and defaultValue values accordingly.
+    `params` parameter could be one of the following:
+    1. Dictionary with params names as keys and types as values
+    Example:
+    params={
+        'param_name': fields.FIELD_NUMERIC,
+    }
 
-
-    NOTE: add **kwargs argument to receive Rule and Matched Conditions as parameters in Action function
+    2. If a param has a default value, ActionParam can be used. Example:
+    params={
+        'voucher_template_id': ActionParam(field_type=fields.FIELD_NUMERIC, default_value=123)
+    }
 
     :param label: Label for Action
     :param params: Parameters expected by the Action function
