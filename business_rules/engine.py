@@ -184,7 +184,7 @@ def do_actions(actions, defined_actions, checked_conditions_results, rule):
 
     for action in actions:
         method_name = action['name']
-        params = action.get('params', {})
+        action_params = action.get('params', {})
 
         method = getattr(defined_actions, method_name, None)
 
@@ -192,10 +192,31 @@ def do_actions(actions, defined_actions, checked_conditions_results, rule):
             raise AssertionError(
                 "Action {0} is not defined in class {1}".format(method_name, defined_actions.__class__.__name__))
 
-        utils.check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
+        params_with_default_value = utils.check_params_valid_for_method(method, action_params,
+                                                                        method_type.METHOD_TYPE_ACTION)
 
-        method_params = _build_action_parameters(method, params, rule, successful_conditions)
+        if params_with_default_value:
+            action_params = _set_default_values_for_missing_action_params(method, params_with_default_value, action_params)
+
+        method_params = _build_action_parameters(method, action_params, rule, successful_conditions)
         method(**method_params)
+
+
+def _set_default_values_for_missing_action_params(method, parameters_with_default_value, action_params):
+    """
+    Adds default parameter from method params to Action parameters.
+    :param method: Action object.
+    :param parameters_with_default_value: set of parameters which have a default value for Action parameters.
+    :param action_params: Action parameters dict, where default parameter will be added.
+    :return: Modified action_params.
+    """
+    if getattr(method, 'params'):
+        for param in method.params:
+            if param['name'] in parameters_with_default_value:
+                default_param = param.get('defaultValue', None)
+                if default_param is not None:
+                    action_params[param['name']] = default_param
+    return action_params
 
 
 def _build_action_parameters(method, parameters, rule, conditions):
@@ -211,12 +232,6 @@ def _build_action_parameters(method, parameters, rule, conditions):
         'rule': rule,
         'conditions': conditions
     }
-
-    if getattr(method, 'params'):
-        for param in method.params:
-            default_param = param.get('defaultValue')
-            if default_param:
-                parameters[param['name']] = default_param
 
     return _build_parameters(method, parameters, extra_parameters)
 

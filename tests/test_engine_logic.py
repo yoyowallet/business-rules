@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 from mock import patch, MagicMock
-
 from business_rules import engine
 from business_rules import fields
 from business_rules.actions import BaseActions, ActionParam, rule_action
@@ -338,6 +337,47 @@ class EngineTests(TestCase):
             engine.do_actions(rule_actions, defined_actions, payload, rule)
 
             action_mock.assert_called_once_with(param1='foo', param2=42)
+
+    def test_default_param_overrides_action_param(self):
+
+        function_params_mock = MagicMock()
+        function_params_mock.varkw = None
+        with patch('business_rules.engine.getfullargspec', return_value=function_params_mock):
+            rule_actions = [
+                {
+                    'name': 'some_action',
+                    'params': {'param1': 'foo'}
+                }
+            ]
+
+            rule = {
+                'conditions': {
+
+                },
+                'actions': rule_actions
+            }
+
+            action_param_with_default_value = ActionParam(field_type=fields.FIELD_TEXT, default_value='bar')
+
+            action_mock = MagicMock()
+
+            class SomeActions(BaseActions):
+                @rule_action(params={'param1': action_param_with_default_value})
+                def some_action(self, param1):
+                    return action_mock(param1=param1)
+
+            defined_actions = SomeActions()
+
+            defined_actions.action = MagicMock()
+            defined_actions.action.params = {
+                'param1': action_param_with_default_value,
+            }
+
+            payload = [(True, 'condition_name', 'operator_name', 'condition_value')]
+
+            engine.do_actions(rule_actions, defined_actions, payload, rule)
+
+            action_mock.assert_called_once_with(param1='foo')
 
 
 class EngineCheckConditionsTests(TestCase):

@@ -103,7 +103,10 @@ def check_params_valid_for_method(method, given_params, method_type_name):
     :param method:
     :param given_params: Parameters defined within the Rule (Action or Condition)
     :param method_type_name: A method type defined in util.method_type module
-    :return: None. Raise exception if parameters don't match (defined in method and Rule)
+    :return: Set of default values for params which are missing but have a default value. Raise exception if parameters
+    don't
+    match (defined in method and
+    Rule)
     """
     method_params = params_dict_to_list(method.params)
     defined_params = [param.get('name') for param in method_params]
@@ -126,6 +129,8 @@ def check_params_valid_for_method(method, given_params, method_type_name):
         raise AssertionError("Invalid parameters {0} for {1} {2}".format(
             ', '.join(invalid_params), method_type_name, method.__name__))
 
+    return params_with_default_value
+
 
 def check_for_default_value_for_missing_params(missing_params, method_params):
     """
@@ -144,7 +149,7 @@ def check_for_default_value_for_missing_params(missing_params, method_params):
     params_with_default_value = set()
     if method_params:
         for param in method_params:
-            if param['name'] in missing_params and param.get('defaultValue') is not None:
+            if param['name'] in missing_params and param.get('defaultValue', None) is not None:
                 params_with_default_value.add(param['name'])
 
     return params_with_default_value
