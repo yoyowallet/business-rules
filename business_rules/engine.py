@@ -209,16 +209,20 @@ def _set_default_values_for_missing_action_params(method, parameters_with_defaul
     Adds default parameter from method params to Action parameters.
     :param method: Action object.
     :param parameters_with_default_value: set of parameters which have a default value for Action parameters.
-    :param action_params: Action parameters dict, where default parameter will be added.
+    :param action_params: Action parameters dict.
     :return: Modified action_params.
     """
+    modified_action_params = {}
     if getattr(method, 'params', None):
         for param in method.params:
-            if param['name'] in parameters_with_default_value:
+            param_name = param['name']
+            if param_name in parameters_with_default_value:
                 default_value = param.get('defaultValue', None)
                 if default_value is not None:
-                    action_params[param['name']] = default_value
-    return action_params
+                    modified_action_params[param_name] = default_value
+                    continue
+            modified_action_params[param_name] = action_params[param_name]
+    return modified_action_params
 
 
 def _build_action_parameters(method, parameters, rule, conditions):

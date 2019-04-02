@@ -325,11 +325,10 @@ class EngineTests(TestCase):
 
             defined_actions = SomeActions()
 
-            action_param = ActionParam(field_type=fields.FIELD_NUMERIC, default_value=42)
             defined_actions.action = MagicMock()
             defined_actions.action.params = {
                 'param1': fields.FIELD_TEXT,
-                'param2': action_param
+                'param2': action_param_with_default_value
             }
 
             payload = [(True, 'condition_name', 'operator_name', 'condition_value')]
