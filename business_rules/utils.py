@@ -232,7 +232,6 @@ def validate_rule_data(variables, actions, rule):
         if type(input_actions) is not list:
             raise AssertionError('"actions" key must be a list')
         for action in input_actions:
-            # params here are json params from rule
             method = getattr(actions, action.get('name'), None)
             params = action.get('params', {})
             check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
