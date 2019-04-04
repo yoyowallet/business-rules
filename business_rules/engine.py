@@ -204,7 +204,7 @@ def do_actions(actions, defined_actions, checked_conditions_results, rule):
         method(**method_params)
 
 
-def _set_default_values_for_missing_action_params(method, parameters_with_default_value, action_params):
+def _set_default_values_for_missing_action_params(method, missing_parameters_with_default_value, action_params):
     """
     Adds default parameter from method params to Action parameters.
     :param method: Action object.
@@ -216,7 +216,7 @@ def _set_default_values_for_missing_action_params(method, parameters_with_defaul
     if getattr(method, 'params', None):
         for param in method.params:
             param_name = param['name']
-            if param_name in parameters_with_default_value:
+            if param_name in missing_parameters_with_default_value:
                 default_value = param.get('defaultValue', None)
                 if default_value is not None:
                     modified_action_params[param_name] = default_value

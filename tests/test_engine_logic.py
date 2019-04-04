@@ -345,7 +345,7 @@ class EngineTests(TestCase):
             rule_actions = [
                 {
                     'name': 'some_action',
-                    'params': {'param1': 'foo'}
+                    'params': {'param1': False}
                 }
             ]
 
@@ -376,7 +376,7 @@ class EngineTests(TestCase):
 
             engine.do_actions(rule_actions, defined_actions, payload, rule)
 
-            action_mock.assert_called_once_with(param1='foo')
+            action_mock.assert_called_once_with(param1=False)
 
 
 class EngineCheckConditionsTests(TestCase):
