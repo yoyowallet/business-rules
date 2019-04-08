@@ -136,14 +136,14 @@ def check_for_default_value_for_missing_params(missing_params, method_params):
     :param missing_params: Params missing from Rule
     :param method_params: Params defined on method, which could have default value for missing param
     [{
-     'label': 'release voucher from template',
-     'name': 'voucher_template_id',
+     'label': 'action_label',
+     'name': 'action_parameter',
      'fieldType': 'numeric',
      'defaultValue': 123
     },
     ...
     ]
-    :return Params that are missing from rule but have default params: {'voucher_template_id'}
+    :return Params that are missing from rule but have default params: {'action_parameter'}
     """
     missing_params_with_default_value = set()
     if method_params:

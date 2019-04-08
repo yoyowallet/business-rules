@@ -26,8 +26,8 @@ def _validate_action_parameters(func, params):
     :param func:
     :param params:
                 {
-                 'label': 'release voucher from template',
-                 'name': 'voucher_template_id',
+                 'label': 'action_label',
+                 'name': 'action_parameter',
                  'fieldType': 'numeric',
                  'defaultValue': 123
                 }
@@ -60,7 +60,7 @@ def rule_action(label=None, params=None):
 
     2. If a param has a default value, ActionParam can be used. Example:
     params={
-        'voucher_template_id': ActionParam(field_type=fields.FIELD_NUMERIC, default_value=123)
+        'action_parameter': ActionParam(field_type=fields.FIELD_NUMERIC, default_value=123)
     }
 
     :param label: Label for Action
