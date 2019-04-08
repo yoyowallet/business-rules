@@ -208,7 +208,7 @@ def _set_default_values_for_missing_action_params(method, missing_parameters_wit
     """
     Adds default parameter from method params to Action parameters.
     :param method: Action object.
-    :param parameters_with_default_value: set of parameters which have a default value for Action parameters.
+    :param missing_parameters_with_default_value: set of parameters which have a default value for Action parameters.
     :param action_params: Action parameters dict.
     :return: Modified action_params.
     """
