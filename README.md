@@ -108,6 +108,26 @@ class ProductActions(BaseActions):
         self.product.save()
 ```
 
+If you introduced a new action parameter but already have an older set of active Rules,
+which will all require to be updated with this new parameter, you can use `ActionParam` class which
+contains default value for parameter along with field type:
+```python
+from business_rules.actions import ActionParam, BaseActions, rule_action
+from business_rules import fields
+
+class ProductActions(BaseActions):
+
+    def __init__(self, product):
+        self.product = product
+
+    @rule_action(params={"sale_percentage": fields.FIELD_NUMERIC,
+                         "on_sale": ActionParam(field_type=fields.FIELD_BOOLEAN, default_value=False})
+    def put_on_sale(self, sale_percentage, on_sale):
+        self.product.price = (1.0 - sale_percentage) * self.product.price
+        self.on_sale = on_sale
+        self.product.save()
+
+```
 ### 3. Build the rules
 
 A rule is just a JSON object that gets interpreted by the business-rules engine.

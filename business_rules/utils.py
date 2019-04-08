@@ -103,11 +103,20 @@ def check_params_valid_for_method(method, given_params, method_type_name):
     :param method:
     :param given_params: Parameters defined within the Rule (Action or Condition)
     :param method_type_name: A method type defined in util.method_type module
-    :return: None. Raise exception if parameters don't match (defined in method and Rule)
+    :return: Set of default values for params which are missing but have a default value. Raise exception if parameters
+    don't
+    match (defined in method and
+    Rule)
     """
     method_params = params_dict_to_list(method.params)
     defined_params = [param.get('name') for param in method_params]
     missing_params = set(defined_params).difference(given_params)
+
+    # check for default value in action parameters, if it is present, exclude param from missing params
+    params_with_default_value = set()
+    if method_type_name == method_type.METHOD_TYPE_ACTION and missing_params:
+        params_with_default_value = check_for_default_value_for_missing_params(missing_params, method_params)
+        missing_params -= params_with_default_value
 
     if missing_params:
         raise AssertionError("Missing parameters {0} for {1} {2}".format(
@@ -118,6 +127,31 @@ def check_params_valid_for_method(method, given_params, method_type_name):
     if invalid_params:
         raise AssertionError("Invalid parameters {0} for {1} {2}".format(
             ', '.join(invalid_params), method_type_name, method.__name__))
+
+    return params_with_default_value
+
+
+def check_for_default_value_for_missing_params(missing_params, method_params):
+    """
+    :param missing_params: Params missing from Rule
+    :param method_params: Params defined on method, which could have default value for missing param
+    [{
+     'label': 'action_label',
+     'name': 'action_parameter',
+     'fieldType': 'numeric',
+     'defaultValue': 123
+    },
+    ...
+    ]
+    :return Params that are missing from rule but have default params: {'action_parameter'}
+    """
+    missing_params_with_default_value = set()
+    if method_params:
+        for param in method_params:
+            if param['name'] in missing_params and param.get('defaultValue', None) is not None:
+                missing_params_with_default_value.add(param['name'])
+
+    return missing_params_with_default_value
 
 
 def validate_rule_data(variables, actions, rule):

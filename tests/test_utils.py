@@ -37,7 +37,7 @@ def test_fn_name_to_pretty_label_with_different_cases():
 def test_get_valid_fields():
     valid_fields = utils.get_valid_fields()
 
-    assert len(valid_fields) == 7
+    assert len(valid_fields) == 8
 
 
 def test_params_dict_to_list_when_params_none():
@@ -65,7 +65,8 @@ def test_export_rule_data():
                 {
                     'fieldType': 'numeric',
                     'label': 'Foo',
-                    'name': 'foo'
+                    'name': 'foo',
+                    'defaultValue': None
                 }
             ]
         },
@@ -76,7 +77,8 @@ def test_export_rule_data():
                 {
                     'fieldType': 'text',
                     'label': 'Bar',
-                    'name': 'bar'
+                    'name': 'bar',
+                    'defaultValue': None
                 }
             ]
         },

@@ -175,7 +175,7 @@ def do_actions(actions, defined_actions, checked_conditions_results, rule):
     :param defined_actions:     Class with function that implement the logic for each possible action defined in
                                 'actions' parameter
     :param checked_conditions_results:
-    :param rule:                Rule that is beign executed
+    :param rule:                Rule that is being executed
     :return: None
     """
 
@@ -184,7 +184,7 @@ def do_actions(actions, defined_actions, checked_conditions_results, rule):
 
     for action in actions:
         method_name = action['name']
-        params = action.get('params', {})
+        action_params = action.get('params', {})
 
         method = getattr(defined_actions, method_name, None)
 
@@ -192,10 +192,37 @@ def do_actions(actions, defined_actions, checked_conditions_results, rule):
             raise AssertionError(
                 "Action {0} is not defined in class {1}".format(method_name, defined_actions.__class__.__name__))
 
-        utils.check_params_valid_for_method(method, params, method_type.METHOD_TYPE_ACTION)
+        missing_params_with_default_value = utils.check_params_valid_for_method(method, action_params,
+                                                                                method_type.METHOD_TYPE_ACTION)
 
-        method_params = _build_action_parameters(method, params, rule, successful_conditions)
+        if missing_params_with_default_value:
+            action_params = _set_default_values_for_missing_action_params(method,
+                                                                          missing_params_with_default_value,
+                                                                          action_params)
+
+        method_params = _build_action_parameters(method, action_params, rule, successful_conditions)
         method(**method_params)
+
+
+def _set_default_values_for_missing_action_params(method, missing_parameters_with_default_value, action_params):
+    """
+    Adds default parameter from method params to Action parameters.
+    :param method: Action object.
+    :param parameters_with_default_value: set of parameters which have a default value for Action parameters.
+    :param action_params: Action parameters dict.
+    :return: Modified action_params.
+    """
+    modified_action_params = {}
+    if getattr(method, 'params', None):
+        for param in method.params:
+            param_name = param['name']
+            if param_name in missing_parameters_with_default_value:
+                default_value = param.get('defaultValue', None)
+                if default_value is not None:
+                    modified_action_params[param_name] = default_value
+                    continue
+            modified_action_params[param_name] = action_params[param_name]
+    return modified_action_params
 
 
 def _build_action_parameters(method, parameters, rule, conditions):

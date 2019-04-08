@@ -25,6 +25,12 @@ def _validate_action_parameters(func, params):
     function `func`, and that the field types are FIELD_* types in fields.
     :param func:
     :param params:
+                {
+                 'label': 'action_label',
+                 'name': 'action_parameter',
+                 'fieldType': 'numeric',
+                 'defaultValue': 123
+                }
     :return:
     """
     if params is not None:
@@ -45,8 +51,17 @@ def _validate_action_parameters(func, params):
 def rule_action(label=None, params=None):
     """
     Decorator to make a function into a rule action.
+    `params` parameter could be one of the following:
+    1. Dictionary with params names as keys and types as values
+    Example:
+    params={
+        'param_name': fields.FIELD_NUMERIC,
+    }
 
-    NOTE: add **kwargs argument to receive Rule and Matched Conditions as parameters in Action function
+    2. If a param has a default value, ActionParam can be used. Example:
+    params={
+        'action_parameter': ActionParam(field_type=fields.FIELD_NUMERIC, default_value=123)
+    }
 
     :param label: Label for Action
     :param params: Parameters expected by the Action function
@@ -58,10 +73,11 @@ def rule_action(label=None, params=None):
         if isinstance(params, dict):
             params_ = [
                 dict(
-                    label=fn_name_to_pretty_label(name),
-                    name=name,
-                    fieldType=field_type,
-                ) for name, field_type in params.items()
+                    label=fn_name_to_pretty_label(key),
+                    name=key,
+                    fieldType=getattr(value, "field_type", value),
+                    defaultValue=getattr(value, "default_value", None)
+                ) for key, value in params.items()
             ]
 
         _validate_action_parameters(func, params_)
@@ -73,3 +89,9 @@ def rule_action(label=None, params=None):
         return func
 
     return wrapper
+
+
+class ActionParam:
+    def __init__(self, field_type, default_value=None):
+        self.field_type = field_type
+        self.default_value = default_value
