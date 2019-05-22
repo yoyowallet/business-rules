@@ -201,6 +201,10 @@ def do_actions(actions, defined_actions, checked_conditions_results, rule):
                                                                           action_params)
 
         method_params = _build_action_parameters(method, action_params, rule, successful_conditions)
+        
+        if 'value' in action_params.keys():
+            method_params['value'] = successful_conditions[0].value
+
         method(**method_params)
 
 
