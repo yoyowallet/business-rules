@@ -11,20 +11,28 @@ with open('HISTORY.rst') as f:
 
 description = 'Python DSL for setting up business intelligence rules that can be configured without code'
 
-install_requires = [
-    'pytz>=2016.10',
-    'typing',
-    'six',
-]
+with open('requirements.txt') as f:
+    install_requires = f.read().splitlines()
 
 setuptools.setup(
     name='business-rules',
     version=version,
     description='{0}\n\n{1}'.format(description, history),
-    author='Venmo',
-    author_email='open-source@venmo.com',
-    url='https://github.com/venmo/business-rules',
+    author='amitkpandey-in',
+    author_email='gh@amitkpandey.in',
+    url='https://github.com/amitkpandey-in/business-rules',
     packages=find_packages(exclude=['tests']),
     license='MIT',
-    install_requires=install_requires
+    install_requires=install_requires,
+    classifiers=[
+            'Intended Audience :: Developers',
+            'License :: OSI Approved :: BSD License',
+            'Operating System :: OS Independent',
+            'Programming Language :: Python',
+            'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+        ]
 )

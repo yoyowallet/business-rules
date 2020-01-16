@@ -1,9 +1,12 @@
 version: 2
-
 jobs:
-  build:
+  test_build:
+    working_directory: ~/code
     docker:
-      - image: circleci/python:2.7
+      - image: circleci/python:3.8
+    branches:
+      only:
+        - master
     steps:
       - checkout
       - run:
@@ -18,3 +21,36 @@ jobs:
           command: |
             . venv/bin/activate
             make coverage
+      - run:
+          command: |
+            make wheel
+            TAG=$(python -c 'import business_rules; print(business_rules.__version__)')
+            GH_REPO="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
+            GH_TAGS="$GH_REPO/releases/tags/$TAG"
+            AUTH="Authorization: token ${GITHUB_TOKEN}"
+            filename="business_rules-$TAG-py2.py3-none-any.whl"
+            # Validate token.
+            curl -o /dev/null -sH "$AUTH" $GH_REPO || { echo "Error: Invalid repo, token or network issue!";  exit 1; }
+            
+            # Create a release
+            RELEASE_URL="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/releases"
+            curl -H "$AUTH" --data "{\"tag_name\": \"$TAG\"}" $RELEASE_URL
+            
+            # Read asset tags.
+            response=$(curl -sH "$AUTH" $GH_TAGS)
+            
+            # Get ID of the asset based on given filename.
+            eval $(echo "$response" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:alnum:]]=')
+            [ "$id" ] || { echo "Error: Failed to get release id for tag: $TAG"; echo "$response\n" >&2; exit 1; }
+            
+            GH_ASSET="https://uploads.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/releases/$id/assets?name=$(basename $filename)"
+            
+            # Upload the asset
+            cd ./dist/
+            curl --data-binary @"$filename" -H "$AUTH" -H "Content-Type: application/octet-stream" $GH_ASSET
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - test_build
