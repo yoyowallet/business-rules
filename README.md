@@ -1,7 +1,7 @@
 business-rules
 ==============
 
-[![Build Status](https://travis-ci.com/amitkpandey-in/business-rules.svg?token=VFT53t8Uf9YtKaqpfH4N&branch=master)](https://travis-ci.com/amitkpandey-in/business-rules)
+[![Build Status](https://travis-ci.com/amitkpandey-in/business-rules.svg?branch=master)](https://travis-ci.com/amitkpandey-in/business-rules)
 
 This is a fork of [yoyowallet/business-rules](https://github.com/yoyowallet/business-rules) which is fork of [venmo/business-rules](https://github.com/venmo/business-rules) from version 1.0.1. [yoyowallet/business-rules](https://github.com/yoyowallet/business-rules) is being maintained, hence forked this.
 
