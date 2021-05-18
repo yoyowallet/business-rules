@@ -15,9 +15,21 @@ def run_all(rule_list, defined_variables, defined_actions, stop_on_first_trigger
     # type: (...) -> List[bool]
     results = [False] * len(rule_list)
     for i, rule in enumerate(rule_list):
-        result = run(rule, defined_variables, defined_actions)
+        result, _ = run(rule, defined_variables, defined_actions)
         if result:
             results[i] = True
+            if stop_on_first_trigger:
+                break
+    return results
+
+
+def run_all_with_results(rule_list, defined_variables, defined_actions, stop_on_first_trigger=False):
+    # type: (...) -> List[Tuple(bool, List)]
+    results = [(False, [])] * len(rule_list)
+    for i, rule in enumerate(rule_list):
+        result, checked_conditions_results = run(rule, defined_variables, defined_actions)
+        results[i] = result, checked_conditions_results
+        if result:
             if stop_on_first_trigger:
                 break
     return results
@@ -35,9 +47,9 @@ def run(rule, defined_variables, defined_actions):
 
     if rule_triggered:
         do_actions(actions, defined_actions, checked_conditions_results, rule)
-        return True
+        return True, checked_conditions_results
 
-    return False
+    return False, checked_conditions_results
 
 
 def check_conditions_recursively(conditions, defined_variables, rule):
@@ -62,16 +74,18 @@ def check_conditions_recursively(conditions, defined_variables, rule):
             check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables, rule)
             matches.extend(matches_results)
             if not check_condition_result:
-                return False, []
+                return False, matches_results
         return True, matches
 
     elif keys == ['any']:
         assert len(conditions['any']) >= 1
+        matches = []
         for condition in conditions['any']:
             check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables, rule)
+            matches.extend(matches_results)
             if check_condition_result:
                 return True, matches_results
-        return False, []
+        return False, matches
 
     else:
         # help prevent errors - any and all can only be in the condition dict

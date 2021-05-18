@@ -28,7 +28,7 @@ class EngineTests(TestCase):
         actions = BaseActions()
 
         def return_action1(rule, *args, **kwargs):
-            return rule['actions'] == 'action name 1'
+            return rule['actions'] == 'action name 1', []
 
         engine.run.side_effect = return_action1
 
@@ -43,7 +43,7 @@ class EngineTests(TestCase):
         self.assertEqual(results, [False, True])
         self.assertEqual(engine.run.call_count, 2)
 
-    @patch.object(engine, 'run', return_value=True)
+    @patch.object(engine, 'run', return_value=(True, []))
     def test_run_all_stop_on_first(self, *args):
         rule1 = {'conditions': 'condition1', 'actions': 'action name 1'}
         rule2 = {'conditions': 'condition2', 'actions': 'action name 2'}
@@ -57,6 +57,50 @@ class EngineTests(TestCase):
         self.assertEqual(engine.run.call_count, 1)
         engine.run.assert_called_once_with(rule1, variables, actions)
 
+    @patch.object(engine, 'run')
+    def test_run_all_with_results_some_rule_triggered(self, *args):
+        """
+        By default, does not stop on first triggered rule. Returns a list of
+        tuples indicating whether each rule was triggered and its condition result list.
+            tuple: (condition_result, [(condition1_result), (condition2_result)]
+        """
+        rule1 = {'conditions': 'condition1', 'actions': 'action name 1'}
+        rule2 = {'conditions': 'condition2', 'actions': 'action name 2'}
+        variables = BaseVariables()
+        actions = BaseActions()
+
+        def return_action1(rule, *args, **kwargs):
+            return rule['actions'] == 'action name 1', []
+
+        engine.run.side_effect = return_action1
+
+        results = engine.run_all_with_results([rule1, rule2], variables, actions)
+        self.assertEqual(results, [(True, []), (False, [])])
+        self.assertEqual(engine.run.call_count, 2)
+
+        # switch order and try again
+        engine.run.reset_mock()
+
+        results = engine.run_all([rule2, rule1], variables, actions)
+        self.assertEqual(results, [False, True])
+        self.assertEqual(engine.run.call_count, 2)
+
+    @patch.object(engine, 'run', return_value=(True, []))
+    def test_run_all_with_results_stop_on_first(self, *args):
+        rule1 = {'conditions': 'condition1', 'actions': 'action name 1'}
+        rule2 = {'conditions': 'condition2', 'actions': 'action name 2'}
+
+        variables = BaseVariables()
+        actions = BaseActions()
+
+        results = engine.run_all_with_results([rule1, rule2], variables, actions, stop_on_first_trigger=True)
+
+        self.assertEqual(results, [(True, []), (False, [])])
+        self.assertEqual(engine.run.call_count, 1)
+        engine.run.assert_called_once_with(rule1, variables, actions)
+
+
+
     @patch.object(engine, 'check_conditions_recursively', return_value=(True, []))
     @patch.object(engine, 'do_actions')
     def test_run_that_triggers_rule(self, *args):
@@ -65,7 +109,7 @@ class EngineTests(TestCase):
         variables = BaseVariables()
         actions = BaseActions()
 
-        result = engine.run(rule, variables, actions)
+        result, checked_conditions_results = engine.run(rule, variables, actions)
 
         self.assertEqual(result, True)
         engine.check_conditions_recursively.assert_called_once_with(rule['conditions'], variables, rule)
@@ -79,7 +123,7 @@ class EngineTests(TestCase):
         variables = BaseVariables()
         actions = BaseActions()
 
-        result = engine.run(rule, variables, actions)
+        result, checked_conditions_results = engine.run(rule, variables, actions)
 
         self.assertEqual(result, False)
         engine.check_conditions_recursively.assert_called_once_with(rule['conditions'], variables, rule)
@@ -107,7 +151,7 @@ class EngineTests(TestCase):
         rule = {"conditions": conditions, "actions": []}
 
         result = engine.check_conditions_recursively(conditions, variables, rule)
-        self.assertEqual(result, (False, []))
+        self.assertEqual(result, (False, [(False,)]))
         engine.check_condition.assert_called_once_with({'thing1': ''}, variables, rule)
 
     def test_check_all_condition_with_no_items_fails(self):
@@ -134,7 +178,7 @@ class EngineTests(TestCase):
         rule = {'conditions': conditions, 'actions': []}
 
         result = engine.check_conditions_recursively(conditions, variables, rule)
-        self.assertEqual(result, (False, []))
+        self.assertEqual(result, (False, [(False,), (False,)]))
         # assert call count and most recent call are as expected
         self.assertEqual(engine.check_condition.call_count, 2)
         engine.check_condition.assert_called_with(conditions['any'][1], variables, rule)
@@ -392,7 +436,9 @@ class EngineCheckConditionsTests(TestCase):
         rule = {'conditions': conditions, 'actions': []}
 
         result = engine.check_conditions_recursively(conditions, variables, rule)
-        self.assertEqual(result, (False, []))
+        self.assertEqual(result, (False, [
+            ConditionResult(result=False, name='true_variable', operator='is_false', value='', parameters={}),
+        ]))
 
     def test_case2(self):
         """
@@ -408,7 +454,9 @@ class EngineCheckConditionsTests(TestCase):
         rule = {'conditions': conditions, 'actions': []}
 
         result = engine.check_conditions_recursively(conditions, variables, rule)
-        self.assertEqual(result, (False, []))
+        self.assertEqual(result, (False, [
+            ConditionResult(result=False, name='true_variable', operator='is_false', value='', parameters={}),
+        ]))
 
     def test_case3(self):
         """
@@ -472,7 +520,9 @@ class EngineCheckConditionsTests(TestCase):
         rule = {'conditions': conditions, 'actions': []}
 
         result = engine.check_conditions_recursively(conditions, variables, rule)
-        self.assertEqual(result, (False, []))
+        self.assertEqual(result, (False, [
+            ConditionResult(result=False, name='true_variable', operator='is_false', value='1', parameters={}),
+        ]))
 
     def test_case6(self):
         """
