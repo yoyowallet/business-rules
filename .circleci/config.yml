@@ -10,8 +10,10 @@ jobs:
           name: Install Dependencies
           command: |
             make clean
-            make deps
+            poetry install --no-ansi --no-interaction
       - run:
           name: Run Tests
           command: |
             make coverage
+      - store_test_results:
+          path: .
