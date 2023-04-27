@@ -9,7 +9,7 @@ jobs:
       - run:
           name: Install Dependencies
           command: |
-            make install
+            make clean
             make deps
       - run:
           name: Run Tests
