@@ -1,22 +1,23 @@
-from __future__ import absolute_import
 import inspect
+from dataclasses import dataclass
+from typing import Optional
 
 from .utils import fn_name_to_pretty_label, get_valid_fields
 
 
 class BaseActions(object):
-    """ Classes that hold a collection of actions to use with the rules
+    """Classes that hold a collection of actions to use with the rules
     engine should inherit from this.
     """
 
     @classmethod
     def get_all_actions(cls):
         methods = inspect.getmembers(cls)
-        return [{
-                    'name': m[0],
-                    'label': m[1].label,
-                    'params': m[1].params
-                } for m in methods if getattr(m[1], 'is_rule_action', False)]
+        return [
+            {'name': m[0], 'label': m[1].label, 'params': m[1].params}
+            for m in methods
+            if getattr(m[1], 'is_rule_action', False)
+        ]
 
 
 def _validate_action_parameters(func, params):
@@ -40,12 +41,18 @@ def _validate_action_parameters(func, params):
         for param in params:
             param_name, field_type = param['name'], param['fieldType']
             if param_name not in func.__code__.co_varnames:
-                raise AssertionError("Unknown parameter name {0} specified for action {1}".format(
-                    param_name, func.__name__))
+                raise AssertionError(
+                    "Unknown parameter name {0} specified for action {1}".format(
+                        param_name, func.__name__
+                    )
+                )
 
             if field_type not in valid_fields:
-                raise AssertionError("Unknown field type {0} specified for action {1} param {2}".format(
-                    field_type, func.__name__, param_name))
+                raise AssertionError(
+                    "Unknown field type {0} specified for action {1} param {2}".format(
+                        field_type, func.__name__, param_name
+                    )
+                )
 
 
 def rule_action(label=None, params=None):
@@ -76,8 +83,9 @@ def rule_action(label=None, params=None):
                     label=fn_name_to_pretty_label(key),
                     name=key,
                     fieldType=getattr(value, "field_type", value),
-                    defaultValue=getattr(value, "default_value", None)
-                ) for key, value in params.items()
+                    defaultValue=getattr(value, "default_value", None),
+                )
+                for key, value in params.items()
             ]
 
         _validate_action_parameters(func, params_)
@@ -91,7 +99,7 @@ def rule_action(label=None, params=None):
     return wrapper
 
 
+@dataclass
 class ActionParam:
-    def __init__(self, field_type, default_value=None):
-        self.field_type = field_type
-        self.default_value = default_value
+    field_type: type
+    default_value: Optional[int]

@@ -1,9 +1,9 @@
-from __future__ import absolute_import
+from datetime import datetime
+
 from business_rules import variables
 
 
 class TestVariables(variables.BaseVariables):
-
     @variables.boolean_rule_variable()
     def bool_variable(self):
         return True
@@ -26,7 +26,7 @@ class TestVariables(variables.BaseVariables):
 
     @variables.time_rule_variable()
     def time_variable(self):
-        return time.time()
+        return datetime.time()
 
     @variables.select_rule_variable()
     def select_variable(self):

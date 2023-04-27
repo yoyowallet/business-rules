@@ -1,9 +1,9 @@
-from __future__ import absolute_import
+#! python3
 import logging
 
 from business_rules import run_all
 from tests.example.actions import ExampleActions
-from tests.example.basket import Item, Basket
+from tests.example.basket import Basket, Item
 from tests.example.variables import ExampleVariables
 
 logging.basicConfig(level=logging.DEBUG)
@@ -36,7 +36,7 @@ rules = [
                     "name": "today",
                     "operator": "after_than_or_equal_to",
                     "value": "2017-01-16",
-                }
+                },
             ]
         },
         "actions": [
@@ -44,9 +44,9 @@ rules = [
                 "name": "log",
                 "params": {
                     "message": "All criteria met!",
-                }
+                },
             }
-        ]
+        ],
     },
     {
         "actions": [
@@ -54,10 +54,10 @@ rules = [
                 "name": "log",
                 "params": {
                     "message": "Rule with no conditions triggered!",
-                }
+                },
             }
         ]
-    }
+    },
 ]
 
 hot_drink = Item(code=1, name='Hot Drink', line_number=1, quantity=1)

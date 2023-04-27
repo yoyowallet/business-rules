@@ -1,6 +1,6 @@
-__version__ = '2.0.0'
+__version__ = "1.1.1"
 
-from .engine import run_all, check_conditions_recursively
+from .engine import check_conditions_recursively, run_all
 from .utils import export_rule_data, validate_rule_data
 
 # Appease pyflakes by "using" these exports
