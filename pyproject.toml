@@ -8,10 +8,8 @@ packages = [{include = "business_rules"}]
 license='MIT'
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.12"
 pytz = "^2023.3"
-six = "^1.16.0"
-coverage = "^7.2.3"
 
 [tool.poetry.group.dev.dependencies]
 mock = "*"
@@ -19,6 +17,7 @@ nose = "*"
 nose-run-line-number = "*"
 pytest = "*"
 pytest-cov = "*"
+coverage = "^7.2.3"
 
 [build-system]
 requires = ["poetry-core"]

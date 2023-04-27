@@ -208,8 +208,6 @@ def validate_rule_data(variables, actions, rule):
         """
         Recursively check all levels of input conditions
         """
-        import six
-
         if isinstance(input_conditions, list):
             for condition in input_conditions:
                 validate_conditions(condition, rule_schema)
@@ -219,7 +217,7 @@ def validate_rule_data(variables, actions, rule):
                 if len(keys) > 1:
                     raise AssertionError('Expected ONE of "any" or "all" but found {}'.format(keys))
                 else:
-                    for _, v in six.iteritems(input_conditions):
+                    for _, v in input_conditions.items():
                         validate_conditions(v, rule_schema)
             else:
                 validate_condition(input_conditions, variables, rule_schema)
