@@ -23,7 +23,7 @@ packages = [{include = "business_rules"}]
 license='MIT'
 
 [tool.poetry.dependencies]
-python = ">=3.11"
+python = ">=3.7"
 pytz = "^2023.3"
 
 [tool.poetry.group.dev.dependencies]
