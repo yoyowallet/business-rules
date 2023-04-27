@@ -16,5 +16,7 @@ jobs:
           name: Run Tests
           command: |
             make coverage
+      - store_artifacts:
+        path: htmlcov
       - store_test_results:
-          path: .
+          path: ./test-results

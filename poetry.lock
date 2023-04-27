@@ -16,7 +16,7 @@ files = [
 name = "coverage"
 version = "7.2.3"
 description = "Code coverage measurement for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -256,4 +256,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "e5ecf198eeaaf99a3b645c1d5bfa6b8cbd51d74dc6f51f7333e81a5ad959b0e6"
+content-hash = "7dbd69208e7912f84419dc422c864fa5187888230f248231a34720636dbdbd6b"

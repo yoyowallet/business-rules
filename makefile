@@ -14,3 +14,4 @@ test:
 coverage:
 	mkdir -p test-results
 	poetry run py.test --junitxml=test-results/junit.xml --cov-report term-missing --cov=./business_rules $(pytest_args)
+	poetry run coverage html  # open htmlcov/index.html in a browser

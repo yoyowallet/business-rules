@@ -11,6 +11,7 @@ license='MIT'
 python = "^3.8"
 pytz = "^2023.3"
 six = "^1.16.0"
+coverage = "^7.2.3"
 
 [tool.poetry.group.dev.dependencies]
 mock = "*"
