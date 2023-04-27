@@ -2,12 +2,14 @@
 
 clean:
 	-find . -type f -name "*.pyc" -delete
+	poetry env remove 3.8 || true
+	poetry env use 3.8
 
 deps:
-	pip install -r requirements-dev.txt
+	poetry install
 
 test:
-	py.test $(pytest_args)
+	poetry run py.test $(pytest_args)
 
 coverage:
-	py.test --cov-report term-missing --cov=./business_rules $(pytest_args)
+	poetry run py.test --cov-report term-missing --cov=./business_rules $(pytest_args)

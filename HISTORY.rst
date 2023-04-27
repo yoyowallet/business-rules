@@ -1,6 +1,12 @@
 History
 -------
 
+2.0.0
++++++
+Move to Poetry package manager
+Support Django 4.2 and Python 3.11
+
+
 1.0.1
 +++++
 released 2016-3-16

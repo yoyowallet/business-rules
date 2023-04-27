@@ -292,7 +292,7 @@ class EngineTests(TestCase):
 
         checked_conditions_results = [(True, 'condition_name', 'operator_name', 'condition_value')]
 
-        with self.assertRaisesRegexp(AssertionError, err_string):
+        with self.assertRaisesRegex(AssertionError, err_string):
             engine.do_actions(actions, BaseActions(), checked_conditions_results, rule)
 
     def test_do_with_parameter_with_default_value(self):

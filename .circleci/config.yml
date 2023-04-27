@@ -3,18 +3,15 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:2.7
+      - image: cimg/python:3.8
     steps:
       - checkout
       - run:
           name: Install Dependencies
           command: |
-            sudo pip install virtualenv
-            virtualenv venv
-            . venv/bin/activate
+            make install
             make deps
       - run:
           name: Run Tests
           command: |
-            . venv/bin/activate
             make coverage

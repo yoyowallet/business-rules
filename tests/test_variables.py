@@ -36,7 +36,7 @@ class RuleVariableTests(TestCase):
     def test_rule_variable_requires_instance_of_base_type(self):
         err_string = "a_string is not instance of BaseType in rule_variable " \
                      "field_type"
-        with self.assertRaisesRegexp(AssertionError, err_string):
+        with self.assertRaisesRegex(AssertionError, err_string):
             @rule_variable('a_string')
             def some_test_function(self): pass
 

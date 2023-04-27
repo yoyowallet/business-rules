@@ -146,7 +146,7 @@ class IntegrationTests(TestCase):
 
         err_string = 'Variable food is not defined in class SomeVariables'
 
-        with self.assertRaisesRegexp(AssertionError, err_string):
+        with self.assertRaisesRegex(AssertionError, err_string):
             check_condition(condition, SomeVariables(), rule)
 
     def test_check_incorrect_operator_name(self):
@@ -177,7 +177,7 @@ class IntegrationTests(TestCase):
 
         err_string = 'Missing parameters x for variable x_plus_one'
 
-        with self.assertRaisesRegexp(AssertionError, err_string):
+        with self.assertRaisesRegex(AssertionError, err_string):
             check_condition(condition, SomeVariables(), rule)
 
     def test_check_invalid_params(self):
@@ -194,7 +194,7 @@ class IntegrationTests(TestCase):
 
         err_string = 'Invalid parameters y for variable x_plus_one'
 
-        with self.assertRaisesRegexp(AssertionError, err_string):
+        with self.assertRaisesRegex(AssertionError, err_string):
             check_condition(condition, SomeVariables(), rule)
 
     def test_variable_received_rules(self):

@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "business-rules"
+version = "2.0.0"
+description = "Python DSL for setting up business intelligence rules that can be configured without code [https://github.com/venmo/business-rules]"
+authors = ["venmo <open-source@venmo.com>"]
+readme = "README.md"
+packages = [{include = "business_rules"}]
+license='MIT'
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pytz = "^2023.3"
+six = "^1.16.0"
+
+[tool.poetry.group.dev.dependencies]
+mock = "*"
+nose = "*"
+nose-run-line-number = "*"
+pytest = "*"
+pytest-cov = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

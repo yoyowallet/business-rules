@@ -20,7 +20,7 @@ class TimeOperatorTests(TestCase):
 
     def test_instantiate(self):
         err_string = "foo is not a valid time type"
-        with self.assertRaisesRegexp(AssertionError, err_string):
+        with self.assertRaisesRegex(AssertionError, err_string):
             TimeType("foo")
 
     def test_time_type_validates_and_cast_time(self):
@@ -38,7 +38,7 @@ class TimeOperatorTests(TestCase):
 
     def test_other_value_not_time(self):
         error_string = "2016-10 is not a valid time type"
-        with self.assertRaisesRegexp(AssertionError, error_string):
+        with self.assertRaisesRegex(AssertionError, error_string):
             TimeType(self.TEST_TIME).equal_to("2016-10")
 
     def test_time_after_than(self):
