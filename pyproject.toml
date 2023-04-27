@@ -22,8 +22,11 @@ readme = "README.md"
 packages = [{include = "business_rules"}]
 license='MIT'
 
+[tool.poetry.extras]
+test = ["pytest", "pytest-cov"]
+
 [tool.poetry.dependencies]
-python = ">=3.7"
+python = ">=3.7,<4.0"
 pytz = "^2023.3"
 
 [tool.poetry.group.dev.dependencies]
@@ -33,6 +36,7 @@ nose-run-line-number = "*"
 pytest = "*"
 pytest-cov = "*"
 coverage = "^7.2.3"
+tox = "^4.5.1"
 
 [build-system]
 requires = ["poetry-core"]
