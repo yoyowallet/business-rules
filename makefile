@@ -12,4 +12,5 @@ test:
 	poetry run py.test $(pytest_args)
 
 coverage:
-	poetry run py.test --cov-report term-missing --cov=./business_rules $(pytest_args)
+	mkdir -p test-results
+	poetry run py.test --junitxml=test-results/junit.xml --cov-report term-missing --cov=./business_rules $(pytest_args)
