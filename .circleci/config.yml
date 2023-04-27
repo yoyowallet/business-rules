@@ -17,6 +17,6 @@ jobs:
           command: |
             make coverage
       - store_artifacts:
-        path: htmlcov
+          path: htmlcov
       - store_test_results:
           path: ./test-results
