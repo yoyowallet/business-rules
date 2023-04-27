@@ -2,8 +2,8 @@
 
 clean:
 	-find . -type f -name "*.pyc" -delete
-	poetry env remove 3.12 || true
-	poetry env use 3.12
+	poetry env remove 3.11 || true
+	poetry env use 3.11
 
 deps:
 	poetry install

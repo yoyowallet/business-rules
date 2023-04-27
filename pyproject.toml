@@ -8,7 +8,7 @@ packages = [{include = "business_rules"}]
 license='MIT'
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.11"
 pytz = "^2023.3"
 
 [tool.poetry.group.dev.dependencies]
