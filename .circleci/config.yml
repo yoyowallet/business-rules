@@ -2,19 +2,21 @@ version: 2
 
 jobs:
   build:
+    resource_class: small
     docker:
-      - image: circleci/python:2.7
+      - image: cimg/python:3.11
     steps:
       - checkout
       - run:
           name: Install Dependencies
           command: |
-            sudo pip install virtualenv
-            virtualenv venv
-            . venv/bin/activate
-            make deps
+            make clean
+            poetry install --no-ansi --no-interaction
       - run:
           name: Run Tests
           command: |
-            . venv/bin/activate
             make coverage
+      - store_artifacts:
+          path: htmlcov
+      - store_test_results:
+          path: ./test-results

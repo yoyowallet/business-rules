@@ -1,18 +1,18 @@
-from __future__ import absolute_import
-import inspect
 import logging
+from inspect import getfullargspec
+from typing import List
 
 from . import utils
 from .fields import FIELD_NO_INPUT
 from .models import ConditionResult
 from .util import method_type
-from .util.compat import getfullargspec
 
 logger = logging.getLogger(__name__)
 
 
-def run_all(rule_list, defined_variables, defined_actions, stop_on_first_trigger=False):
-    # type: (...) -> List[bool]
+def run_all(
+    rule_list, defined_variables, defined_actions, stop_on_first_trigger=False
+) -> List[bool]:
     results = [False] * len(rule_list)
     for i, rule in enumerate(rule_list):
         result = run(rule, defined_variables, defined_actions)
@@ -24,10 +24,12 @@ def run_all(rule_list, defined_variables, defined_actions, stop_on_first_trigger
 
 
 def run(rule, defined_variables, defined_actions):
-    conditions, actions = rule.get('conditions'), rule['actions']
+    conditions, actions = rule.get("conditions"), rule["actions"]
 
     if conditions is not None:
-        rule_triggered, checked_conditions_results = check_conditions_recursively(conditions, defined_variables, rule)
+        rule_triggered, checked_conditions_results = check_conditions_recursively(
+            conditions, defined_variables, rule
+        )
     else:
         # If there are no conditions then trigger actions
         rule_triggered = True
@@ -46,29 +48,36 @@ def check_conditions_recursively(conditions, defined_variables, rule):
     This method checks all conditions including embedded ones.
 
     :param conditions:  Conditions to be checked
-    :param defined_variables: BaseVariables instance to get variables values to check Conditions
+    :param defined_variables: BaseVariables instance to get variables values to check
+    Conditions
     :param rule: Original rule where Conditions and Actions are defined
-    :return: tuple with result of condition check and list of checked conditions with each individual result.
+    :return: tuple with result of condition check and list of checked conditions with
+    each individual result.
 
             (condition_result, [(condition1_result), (condition2_result)]
 
-            condition1_result = (condition_result, variable name, condition operator, condition value, condition params)
+            condition1_result = (condition_result, variable name, condition operator,
+            condition value, condition params)
     """
     keys = list(conditions.keys())
-    if keys == ['all']:
-        assert len(conditions['all']) >= 1
+    if keys == ["all"]:
+        assert len(conditions["all"]) >= 1
         matches = []
-        for condition in conditions['all']:
-            check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables, rule)
+        for condition in conditions["all"]:
+            check_condition_result, matches_results = check_conditions_recursively(
+                condition, defined_variables, rule
+            )
             matches.extend(matches_results)
             if not check_condition_result:
                 return False, []
         return True, matches
 
-    elif keys == ['any']:
-        assert len(conditions['any']) >= 1
-        for condition in conditions['any']:
-            check_condition_result, matches_results = check_conditions_recursively(condition, defined_variables, rule)
+    elif keys == ["any"]:
+        assert len(conditions["any"]) >= 1
+        for condition in conditions["any"]:
+            check_condition_result, matches_results = check_conditions_recursively(
+                condition, defined_variables, rule
+            )
             if check_condition_result:
                 return True, matches_results
         return False, []
@@ -76,7 +85,7 @@ def check_conditions_recursively(conditions, defined_variables, rule):
     else:
         # help prevent errors - any and all can only be in the condition dict
         # if they're the only item
-        assert not ('any' in keys or 'all' in keys)
+        assert not ("any" in keys or "all" in keys)
         result = check_condition(conditions, defined_variables, rule)
         return result[0], [result]
 
@@ -101,11 +110,16 @@ def check_condition(condition, defined_variables, rule):
             condition params: {}
         )
     """
-    name, op, value = condition['name'], condition['operator'], condition['value']
-    params = condition.get('params', {})
+    name, op, value = condition["name"], condition["operator"], condition["value"]
+    params = condition.get("params", {})
     operator_type = _get_variable_value(defined_variables, name, params, rule)
-    return ConditionResult(result=_do_operator_comparison(operator_type, op, value), name=name, operator=op,
-                           value=value, parameters=params)
+    return ConditionResult(
+        result=_do_operator_comparison(operator_type, op, value),
+        name=name,
+        operator=op,
+        value=value,
+        parameters=params,
+    )
 
 
 def _get_variable_value(defined_variables, name, params, rule):
@@ -124,10 +138,15 @@ def _get_variable_value(defined_variables, name, params, rule):
     method = getattr(defined_variables, name, None)
 
     if method is None:
-        raise AssertionError("Variable {0} is not defined in class {1}".format(
-            name, defined_variables.__class__.__name__))
+        raise AssertionError(
+            "Variable {0} is not defined in class {1}".format(
+                name, defined_variables.__class__.__name__
+            )
+        )
 
-    utils.check_params_valid_for_method(method, params, method_type.METHOD_TYPE_VARIABLE)
+    utils.check_params_valid_for_method(
+        method, params, method_type.METHOD_TYPE_VARIABLE
+    )
 
     method_params = _build_variable_parameters(method, params, rule)
     variable_value = method(**method_params)
@@ -149,11 +168,14 @@ def _do_operator_comparison(operator_type, operator_name, comparison_value):
     """
 
     def fallback(*args, **kwargs):
-        raise AssertionError("Operator {0} does not exist for type {1}".format(
-            operator_name, operator_type.__class__.__name__))
+        raise AssertionError(
+            "Operator {0} does not exist for type {1}".format(
+                operator_name, operator_type.__class__.__name__
+            )
+        )
 
     method = getattr(operator_type, operator_name, fallback)
-    if getattr(method, 'input_type', '') == FIELD_NO_INPUT:
+    if getattr(method, "input_type", "") == FIELD_NO_INPUT:
         return method()
     return method(comparison_value)
 
@@ -172,8 +194,8 @@ def do_actions(actions, defined_actions, checked_conditions_results, rule):
                                             "param1": value
                                         }
                                     }
-    :param defined_actions:     Class with function that implement the logic for each possible action defined in
-                                'actions' parameter
+    :param defined_actions:     Class with function that implement the logic for each
+                                possible action defined in 'actions' parameter
     :param checked_conditions_results:
     :param rule:                Rule that is being executed
     :return: None
@@ -183,41 +205,50 @@ def do_actions(actions, defined_actions, checked_conditions_results, rule):
     successful_conditions = [x for x in checked_conditions_results if x[0]]
 
     for action in actions:
-        method_name = action['name']
-        action_params = action.get('params', {})
+        method_name = action["name"]
+        action_params = action.get("params", {})
 
         method = getattr(defined_actions, method_name, None)
 
         if not method:
             raise AssertionError(
-                "Action {0} is not defined in class {1}".format(method_name, defined_actions.__class__.__name__))
+                "Action {0} is not defined in class {1}".format(
+                    method_name, defined_actions.__class__.__name__
+                )
+            )
 
-        missing_params_with_default_value = utils.check_params_valid_for_method(method, action_params,
-                                                                                method_type.METHOD_TYPE_ACTION)
+        missing_params_with_default_value = utils.check_params_valid_for_method(
+            method, action_params, method_type.METHOD_TYPE_ACTION
+        )
 
         if missing_params_with_default_value:
-            action_params = _set_default_values_for_missing_action_params(method,
-                                                                          missing_params_with_default_value,
-                                                                          action_params)
+            action_params = _set_default_values_for_missing_action_params(
+                method, missing_params_with_default_value, action_params
+            )
 
-        method_params = _build_action_parameters(method, action_params, rule, successful_conditions)
+        method_params = _build_action_parameters(
+            method, action_params, rule, successful_conditions
+        )
         method(**method_params)
 
 
-def _set_default_values_for_missing_action_params(method, missing_parameters_with_default_value, action_params):
+def _set_default_values_for_missing_action_params(
+    method, missing_parameters_with_default_value, action_params
+):
     """
     Adds default parameter from method params to Action parameters.
     :param method: Action object.
-    :param parameters_with_default_value: set of parameters which have a default value for Action parameters.
+    :param parameters_with_default_value: set of parameters which have a default value
+    for Action parameters.
     :param action_params: Action parameters dict.
     :return: Modified action_params.
     """
     modified_action_params = {}
-    if getattr(method, 'params', None):
+    if getattr(method, "params", None):
         for param in method.params:
-            param_name = param['name']
+            param_name = param["name"]
             if param_name in missing_parameters_with_default_value:
-                default_value = param.get('defaultValue', None)
+                default_value = param.get("defaultValue", None)
                 if default_value is not None:
                     modified_action_params[param_name] = default_value
                     continue
@@ -234,10 +265,7 @@ def _build_action_parameters(method, parameters, rule, conditions):
     :param conditions:
     :return:
     """
-    extra_parameters = {
-        'rule': rule,
-        'conditions': conditions
-    }
+    extra_parameters = {"rule": rule, "conditions": conditions}
 
     return _build_parameters(method, parameters, extra_parameters)
 
@@ -251,7 +279,7 @@ def _build_variable_parameters(method, parameters, rule):
     :return:
     """
     extra_parameters = {
-        'rule': rule,
+        "rule": rule,
     }
 
     return _build_parameters(method, parameters, extra_parameters)

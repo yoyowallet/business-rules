@@ -1,8 +1,6 @@
 business-rules
 ==============
 
-[![Build Status](https://travis-ci.org/venmo/business-rules.svg?branch=master)](https://travis-ci.org/venmo/business-rules)
-
 As a software system grows in complexity and usage, it can become burdensome if
 every change to the logic/behavior of the system also requires you to write and
 deploy new code. The goal of this business rules engine is to provide a simple
@@ -13,10 +11,6 @@ You might, for example, find this is a useful way for analysts to define
 marketing logic around when certain customers or items are eligible for a
 discount or to automate emails after users enter a certain state or go through
 a particular sequence of events.
-
-<p align="center">
-    <img src="http://cdn.memegenerator.net/instances/400x/36514579.jpg" />
-</p>
 
 ## Usage
 
@@ -443,7 +437,15 @@ A variable can return the following types of values:
 Open up a pull request, making sure to add tests for any new functionality. To set up the dev environment (assuming you're using [virtualenvwrapper](http://docs.python-guide.org/en/latest/dev/virtualenvs/#virtualenvwrapper)):
 
 ```bash
-$ mkvirtualenv business-rules
-$ pip install -r dev-requirements.txt
-$ nosetests
+$ python -m virtualenv venv
+$ source ./venv/bin/activate
+$ pip install -r dev-requirements.txt -e .
+$ pytest
+```
+
+Alternatively, you can also use Tox:
+
+```bash
+$ pip install "tox<4"
+$ tox -p auto --skip-missing-interpreters
 ```

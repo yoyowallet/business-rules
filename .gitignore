@@ -1,4 +1,5 @@
 *.py[cod]
+.DS_Store
 
 # C extensions
 *.so
@@ -24,7 +25,8 @@ pip-log.txt
 # Unit test / coverage reports
 .coverage
 .tox
-nosetests.xml
+.pytest_cache
+test-results/
 
 # Translations
 *.mo
@@ -37,6 +39,8 @@ nosetests.xml
 # Vim
 *.sw[po]
 .idea/
+
+# Virtual environments
+venv*/
 tests/__pycache__/
 .cache/
-business-rules.iml
