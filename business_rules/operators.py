@@ -144,6 +144,10 @@ class NumericType(BaseType):
     def less_than_or_equal_to(self, other_numeric):
         return self.less_than(other_numeric) or self.equal_to(other_numeric)
 
+    @type_operator(FIELD_NUMERIC)
+    def divisible(self, other_numeric):
+        return self.value % other_numeric == 0
+
 
 @export_type
 class BooleanType(BaseType):
