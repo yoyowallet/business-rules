@@ -115,6 +115,16 @@ class NumericOperatorTests(TestCase):
         self.assertTrue(NumericType(10).less_than_or_equal_to(10.000002))
         self.assertTrue(NumericType(10).less_than_or_equal_to(10))
 
+    def test_numeric_divisible(self):
+        self.assertTrue(NumericType(1).divisible(1))
+        self.assertTrue(NumericType(10).divisible(1))
+        self.assertTrue(NumericType(10).divisible(5))
+        self.assertTrue(NumericType(10).divisible(10))
+        self.assertTrue(NumericType(9).divisible(3))
+        self.assertFalse(NumericType(10).divisible(3))
+        self.assertFalse(NumericType(11).divisible(3))
+        self.assertFalse(NumericType(11).divisible(12))
+
 
 class BooleanOperatorTests(TestCase):
     def test_instantiate(self):
