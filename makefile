@@ -1,15 +1,15 @@
-.PHONY: clean test coverage
+.PHONY: clean tests coverage
 
 clean:
-	-find . -type f -name "*.pyc" -delete
-	poetry env remove 3.11 || true
-	poetry env use 3.11
+	if command -v pyenv >/dev/null 2>&1; then pyenv local 3.12; fi
+	poetry env remove 3.12 || true
+	poetry env use 3.12
 
-deps:
+deps: clean
 	poetry install
 
-test:
-	poetry run py.test $(pytest_args)
+tests:
+	poetry run pytest $(pytest_args)
 
 coverage:
 	mkdir -p test-results
