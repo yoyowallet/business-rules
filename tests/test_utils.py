@@ -183,6 +183,7 @@ def test_export_rule_data():
             {'input_type': FIELD_DATETIME, 'label': 'Equal To', 'name': 'equal_to'},
         ],
         'numeric': [
+            {'input_type': 'numeric', 'label': 'Divisible', 'name': 'divisible'},
             {'input_type': 'numeric', 'label': 'Equal To', 'name': 'equal_to'},
             {'input_type': 'numeric', 'label': 'Greater Than', 'name': 'greater_than'},
             {
