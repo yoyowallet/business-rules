@@ -1,15 +1,27 @@
 .PHONY: clean tests coverage
 
+.PHONY: clean
 clean:
+	find . -name '*.pyc' -delete
+	find . -name '__pycache__' -delete
+	rm -rf dist
+
+.PHONY: deps-clean
+deps-clean:
 	if command -v pyenv >/dev/null 2>&1; then pyenv local 3.12; fi
-	poetry env remove 3.12 || true
+	# Remove the environment and ignore errors if it does not exist.
+	poetry env remove 3.12 2>/dev/null || true
 	poetry env use 3.12
 
-deps: clean
+.PHONY: deps
+deps: deps-clean
 	poetry install
 
 tests:
 	poetry run pytest $(pytest_args)
+
+tox:
+	poetry run tox $(tox_args)
 
 coverage:
 	mkdir -p test-results

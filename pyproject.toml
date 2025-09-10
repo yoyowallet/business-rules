@@ -11,15 +11,14 @@ license='MIT'
 test = ["pytest", "pytest-cov"]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<4.0"
-pytz = "^2023.3"
+python = ">=3.9,<4.0"
 
 [tool.poetry.group.dev.dependencies]
-mock = "*"
-nose = "*"
-nose-run-line-number = "*"
-pytest = "*"
-pytest-cov = "*"
+mock = "^5.2.0"
+nose = "^1.3.7"
+nose-run-line-number = "^0.0.2"
+pytest = "^8.4.2"
+pytest-cov = "^7.0.0"
 coverage = "^7.2.3"
 tox = "^4.5.1"
 

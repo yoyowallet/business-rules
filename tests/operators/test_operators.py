@@ -1,7 +1,6 @@
 from datetime import date, datetime, time, timedelta
+from datetime import UTC
 from decimal import Decimal
-
-import pytz
 
 from business_rules.operators import (
     BaseType,
@@ -249,7 +248,7 @@ class DateTimeOperatorTests(TestCase):
             self.TEST_HOUR,
             self.TEST_MINUTE,
             self.TEST_SECOND,
-            tzinfo=pytz.UTC,
+            tzinfo=UTC,
         )
 
         self.datetime_type_date = DateTimeType(self.TEST_DATE)
