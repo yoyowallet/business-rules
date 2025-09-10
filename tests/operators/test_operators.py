@@ -1,5 +1,5 @@
+import sys
 from datetime import date, datetime, time, timedelta
-from datetime import UTC
 from decimal import Decimal
 
 from business_rules.operators import (
@@ -14,6 +14,13 @@ from business_rules.operators import (
 )
 from tests import TestCase
 
+if sys.version_info >= (3, 11):
+    # Python 3.11+ has datetime.UTC
+    import datetime as datetime_module
+    UTC = datetime_module.UTC
+else:
+    # Python < 3.11, use timezone.utc
+    UTC = datetime.timezone.utc
 
 class BaseTypeOperatorTests(TestCase):
     def test_base_type_cannot_be_created(self):
