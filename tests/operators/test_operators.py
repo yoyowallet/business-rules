@@ -1,3 +1,4 @@
+import datetime as datetime_module
 import sys
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
@@ -17,10 +18,12 @@ from tests import TestCase
 if sys.version_info >= (3, 11):
     # Python 3.11+ has datetime.UTC
     import datetime as datetime_module
+
     UTC = datetime_module.UTC
 else:
     # Python < 3.11, use timezone.utc
-    UTC = datetime.timezone.utc
+    UTC = datetime_module.timezone.utc
+
 
 class BaseTypeOperatorTests(TestCase):
     def test_base_type_cannot_be_created(self):
@@ -82,7 +85,7 @@ class NumericOperatorTests(TestCase):
         ten_dec = Decimal(10)
         ten_int = 10
         ten_float = 10.0
-        ten_long = int(10)  # long and int are same in python3
+        ten_long = 10  # long and int are same in python3
         ten_var_dec = NumericType(ten_dec)  # this should not throw an exception
         ten_var_int = NumericType(ten_int)
         ten_var_float = NumericType(ten_float)
@@ -220,24 +223,18 @@ class SelectMultipleOperatorTests(TestCase):
 
 class DateTimeOperatorTests(TestCase):
     def setUp(self):
-        super(DateTimeOperatorTests, self).setUp()
+        super().setUp()
         self.TEST_YEAR = 2017
         self.TEST_MONTH = 1
         self.TEST_DAY = 16
         self.TEST_HOUR = 13
         self.TEST_MINUTE = 55
         self.TEST_SECOND = 25
-        self.TEST_DATETIME = "{year}-0{month}-{day}T{hour}:{minute}:{second}".format(
-            year=self.TEST_YEAR,
-            month=self.TEST_MONTH,
-            day=self.TEST_DAY,
-            hour=self.TEST_HOUR,
-            minute=self.TEST_MINUTE,
-            second=self.TEST_SECOND,
+        self.TEST_DATETIME = (
+            f"{self.TEST_YEAR}-0{self.TEST_MONTH}-{self.TEST_DAY}"
+            f"T{self.TEST_HOUR}:{self.TEST_MINUTE}:{self.TEST_SECOND}"
         )
-        self.TEST_DATE = "{year}-0{month}-{day}".format(
-            year=self.TEST_YEAR, month=self.TEST_MONTH, day=self.TEST_DAY
-        )
+        self.TEST_DATE = f"{self.TEST_YEAR}-0{self.TEST_MONTH}-{self.TEST_DAY}"
         self.TEST_DATETIME_OBJ = datetime(
             self.TEST_YEAR,
             self.TEST_MONTH,
@@ -471,16 +468,12 @@ class DateTimeOperatorTests(TestCase):
 
 class TimeOperatorTests(TestCase):
     def setUp(self):
-        super(TimeOperatorTests, self).setUp()
+        super().setUp()
         self.TEST_HOUR = 13
         self.TEST_MINUTE = 55
         self.TEST_SECOND = 00
-        self.TEST_TIME = "{hour}:{minute}:{second}".format(
-            hour=self.TEST_HOUR, minute=self.TEST_MINUTE, second=self.TEST_SECOND
-        )
-        self.TEST_TIME_NO_SECONDS = "{hour}:{minute}".format(
-            hour=self.TEST_HOUR, minute=self.TEST_MINUTE
-        )
+        self.TEST_TIME = f"{self.TEST_HOUR}:{self.TEST_MINUTE}:{self.TEST_SECOND}"
+        self.TEST_TIME_NO_SECONDS = f"{self.TEST_HOUR}:{self.TEST_MINUTE}"
         self.TEST_TIME_OBJ = time(self.TEST_HOUR, self.TEST_MINUTE, self.TEST_SECOND)
 
         self.time_type_time = TimeType(self.TEST_TIME)

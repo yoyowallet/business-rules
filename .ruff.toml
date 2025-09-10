@@ -3,7 +3,7 @@
 # Set the maximum line length to 88.
 line-length = 88
 indent-width = 4
-target-version="py312"
+target-version="py39"
 
 [lint]
 select = [

@@ -26,8 +26,6 @@ repos:
         language_version: python3.12
       - id: detect-private-key
       - id: end-of-file-fixer
-      - id: fix-encoding-pragma
-        args: [--remove]
       - id: forbid-new-submodules
       - id: mixed-line-ending
         args: [--fix=lf]
