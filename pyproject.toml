@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "business-rules"
-version = "1.6.1"
+version = "1.7.0"
 description = "Python DSL for setting up business intelligence rules that can be configured without code [https://github.com/venmo/business-rules]"
 authors = ["venmo <open-source@venmo.com>"]
 readme = "README.md"
